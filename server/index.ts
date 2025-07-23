@@ -49,11 +49,11 @@ app.get('/api/hello', (req: Request, res: Response) => {
 userApi(app, admin, db, auth);
 
 // Serve static files from the React app build
-app.use(express.static(path.join(__dirname, '../build')));
+app.use(express.static(path.join(__dirname, '../../build')));
 
 // Serve React app for all other routes
 app.get('*', (req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, '../build', 'index.html'));
+  res.sendFile(path.join(__dirname, '../../build', 'index.html'));
 });
 
 app.listen(PORT, () => {

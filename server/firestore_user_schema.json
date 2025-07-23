@@ -1,0 +1,49 @@
+{
+  "users/{uid}": {
+    "fullName": "string",
+    "email": "string",
+    "visaType": "string",
+    "currentLocation": "string",
+    "currentJob": "string",
+    "currentEmployer": "string",
+    "hasCar": "boolean",
+    "canOfferRides": "boolean",
+    "relationshipStatus": "string",
+    "interests": ["string"],
+    "createdAt": "timestamp",
+    "profileCompletion": "float",
+    "subcollections": {
+      "profileAnswers/background_identity": {
+        "nationality": "string",
+        "languages": ["string"],
+        "firstTimeInUS": {
+          "year": "int",
+          "location": "string",
+          "visa": "string"
+        },
+        "jobDiscoveryMethod": "string",
+        "visaChangeJourney": "string",
+        "otherUSJobs": ["string"]
+      },
+      "profileAnswers/lifestyle_personality": {
+        "hobbies": ["string"],
+        "favoriteState": "string",
+        "preferredOutings": ["string"],
+        "hasCar": "boolean",
+        "offersRides": "boolean",
+        "relationshipStatus": "string"
+      },
+      "profileAnswers/travel_exploration": {
+        "roadTrips": "boolean",
+        "favoritePlace": "string",
+        "travelTips": "string",
+        "willingToGuide": "boolean"
+      },
+      "profileAnswers/knowledge_community": {
+        "mentorshipInterest": "boolean",
+        "jobBoards": ["string"],
+        "visaAdvice": "string"
+      }
+    }
+  }
+}

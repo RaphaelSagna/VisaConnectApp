@@ -7,11 +7,29 @@ import { Firestore } from 'firebase-admin/firestore';
 import { Auth } from 'firebase-admin/auth';
 // Register user API routes
 import userApi from './api/user';
+
 // Initialize Firebase Admin SDK
-import serviceAccount from './firebaseServiceAccount.json';
+let serviceAccount: ServiceAccount;
+
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+  // Production: Use environment variable
+  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+} else {
+  // Development: Use local file
+  try {
+    serviceAccount = require('./firebaseServiceAccount.json');
+  } catch (error) {
+    console.error(
+      'Firebase service account not found. Please set FIREBASE_SERVICE_ACCOUNT environment variable or add firebaseServiceAccount.json'
+    );
+    process.exit(1);
+  }
+}
+
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount as ServiceAccount),
+  credential: admin.credential.cert(serviceAccount),
 });
+
 const db: Firestore = admin.firestore();
 const auth: Auth = admin.auth();
 console.log('Firebase Admin initialized');
@@ -39,5 +57,5 @@ app.get('*', (req: Request, res: Response) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });

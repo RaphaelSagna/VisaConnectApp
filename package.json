@@ -26,7 +26,7 @@
     "world-countries": "^5.1.0"
   },
   "scripts": {
-    "start": "node server/index.js",
+    "start": "node server/dist/index.js",
     "build": "npm run build:client && npm run build:server",
     "build:client": "react-scripts build",
     "build:server": "cd server && npm run build",

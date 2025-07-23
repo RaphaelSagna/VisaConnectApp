@@ -1,14 +1,16 @@
 import React from 'react';
 import './App.css';
 import { Routes, Route } from 'react-router-dom';
-import LoginPage from './screens/LoginPage';
+import LoginPage from './screens/WelcomeScreen';
 import CreateAccountPage from './screens/CreateAccountPage';
 import AccountCreatedPage from './screens/AccountCreatedPage';
-import BackgroundScreen from './screens/BackgroundScreen';
-import LifestyleScreen from './screens/LifestyleScreen';
+import BackgroundScreen from './screens/wizard/BackgroundScreen';
+import LifestyleScreen from './screens/wizard/LifestyleScreen';
 import DashboardScreen from './screens/DashboardScreen';
-import SignInScreen from './screens/SignInScreen';
+import SignInScreen from './screens/LoginScreen';
 import SettingsScreen from './screens/SettingsScreen';
+import TravelExplorationScreen from './screens/wizard/TravelExplorationScreen';
+import KnowledgeCommunityScreen from './screens/wizard/KnowledgeCommunityScreen';
 
 function App() {
   return (
@@ -21,6 +23,11 @@ function App() {
       <Route path="/dashboard" element={<DashboardScreen />} />
       <Route path="/sign-in" element={<SignInScreen />} />
       <Route path="/settings" element={<SettingsScreen />} />
+      <Route path="/travel-exploration" element={<TravelExplorationScreen />} />
+      <Route
+        path="/knowledge-community"
+        element={<KnowledgeCommunityScreen />}
+      />
     </Routes>
   );
 }

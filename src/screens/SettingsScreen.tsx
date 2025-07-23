@@ -15,38 +15,49 @@ import {
 } from '@heroicons/react/24/outline';
 // import { MailIcon, LogoutIcon } from '@heroicons/react/24/solid';
 
-const menuItemsAccount = [
-  { label: 'Edit profile', icon: UserIcon, onClick: () => {} },
-  { label: 'Change Email', icon: LockClosedIcon, onClick: () => {} },
-  { label: 'Change Password', icon: LockClosedIcon, onClick: () => {} },
-  { label: 'Email Visa Connect', icon: EnvelopeIcon, onClick: () => {} },
-  { label: 'Logout', icon: LockClosedIcon, onClick: () => {} },
-  { label: 'Delete account', icon: TrashIcon, onClick: () => {}, danger: true },
-];
-
-const menuItemsPreferences = [
-  {
-    label: 'Preferences (Wizard)',
-    icon: InformationCircleIcon,
-    onClick: () => {},
-  },
-  { label: 'Jobs applied to', icon: BriefcaseIcon, onClick: () => {} },
-  {
-    label: 'Jobs posted (only for approved employers)',
-    icon: CameraIcon,
-    onClick: () => {},
-  },
-  { label: 'Meetups posted', icon: UsersIcon, onClick: () => {} },
-  {
-    label: 'Meetups I’m interested in',
-    icon: ArrowRightIcon,
-    onClick: () => {},
-  },
-];
-
 const SettingsScreen: React.FC = () => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate('/sign-in');
+  };
+
+  const menuItemsAccount = [
+    { label: 'Edit profile', icon: UserIcon, onClick: () => {} },
+    { label: 'Change Email', icon: LockClosedIcon, onClick: () => {} },
+    { label: 'Change Password', icon: LockClosedIcon, onClick: () => {} },
+    { label: 'Email Visa Connect', icon: EnvelopeIcon, onClick: () => {} },
+    { label: 'Logout', icon: LockClosedIcon, onClick: handleLogout },
+    {
+      label: 'Delete account',
+      icon: TrashIcon,
+      onClick: () => {},
+      danger: true,
+    },
+  ];
+
+  const menuItemsPreferences = [
+    {
+      label: 'Preferences (Wizard)',
+      icon: InformationCircleIcon,
+      onClick: () => {},
+    },
+    { label: 'Jobs applied to', icon: BriefcaseIcon, onClick: () => {} },
+    {
+      label: 'Jobs posted (only for approved employers)',
+      icon: CameraIcon,
+      onClick: () => {},
+    },
+    { label: 'Meetups posted', icon: UsersIcon, onClick: () => {} },
+    {
+      label: 'Meetups I’m interested in',
+      icon: ArrowRightIcon,
+      onClick: () => {},
+    },
+  ];
+
   const handleMenuClick = () => setMenuOpen(true);
   const handleOverlayClick = () => setMenuOpen(false);
 

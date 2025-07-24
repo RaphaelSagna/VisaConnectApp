@@ -11,24 +11,31 @@ import SignInScreen from './screens/LoginScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import TravelExplorationScreen from './screens/wizard/TravelExplorationScreen';
 import KnowledgeCommunityScreen from './screens/wizard/KnowledgeCommunityScreen';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<LoginPage />} />
-      <Route path="/create-account" element={<CreateAccountPage />} />
-      <Route path="/account-created" element={<AccountCreatedPage />} />
-      <Route path="/background" element={<BackgroundScreen />} />
-      <Route path="/lifestyle" element={<LifestyleScreen />} />
-      <Route path="/dashboard" element={<DashboardScreen />} />
-      <Route path="/sign-in" element={<SignInScreen />} />
-      <Route path="/settings" element={<SettingsScreen />} />
-      <Route path="/travel-exploration" element={<TravelExplorationScreen />} />
-      <Route
-        path="/knowledge-community"
-        element={<KnowledgeCommunityScreen />}
-      />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/create-account" element={<CreateAccountPage />} />
+        <Route path="/account-created" element={<AccountCreatedPage />} />
+        <Route path="/background" element={<BackgroundScreen />} />
+        <Route path="/lifestyle" element={<LifestyleScreen />} />
+        <Route path="/dashboard" element={<DashboardScreen />} />
+        <Route path="/sign-in" element={<SignInScreen />} />
+        <Route path="/settings" element={<SettingsScreen />} />
+        <Route
+          path="/travel-exploration"
+          element={<TravelExplorationScreen />}
+        />
+        <Route
+          path="/knowledge-community"
+          element={<KnowledgeCommunityScreen />}
+        />
+      </Routes>
+      <PWAInstallPrompt />
+    </>
   );
 }
 

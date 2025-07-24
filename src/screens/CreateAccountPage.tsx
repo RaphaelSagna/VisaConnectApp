@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import Button from '../components/Button';
 import { useNavigate } from 'react-router-dom';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../api/firebase';
+import { apiPost } from '../api';
 
 const Input = React.forwardRef<
   HTMLInputElement,
@@ -91,39 +94,36 @@ const CreateAccountPage: React.FC = () => {
     setApiError('');
 
     try {
-      const response = await fetch('/api/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          firstName: form.firstName,
-          lastName: form.lastName,
-          email: form.email,
-          password: form.password,
-          location: form.location,
-          visaType: form.visaType,
-          employer: form.employer,
-          job: form.job,
-        }),
+      // Register user with Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        form.email,
+        form.password
+      );
+      const idToken = await userCredential.user.getIdToken();
+      localStorage.setItem('userToken', idToken);
+      localStorage.setItem(
+        'userData',
+        JSON.stringify({
+          uid: userCredential.user.uid,
+          email: userCredential.user.email,
+        })
+      );
+      // Optionally, send profile data to your backend
+      await apiPost('/api/register', {
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
+        location: form.location,
+        visaType: form.visaType,
+        employer: form.employer,
+        job: form.job,
+        uid: userCredential.user.uid,
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Registration failed');
-      }
-
-      // Store user data and token (you might want to use a state management solution)
-      localStorage.setItem('userToken', data.token);
-      localStorage.setItem('userData', JSON.stringify(data));
-
       // Navigate to account created page
       navigate('/account-created');
-    } catch (error) {
-      setApiError(
-        error instanceof Error ? error.message : 'Registration failed'
-      );
+    } catch (error: any) {
+      setApiError(error.message || 'Registration failed');
     } finally {
       setSubmitting(false);
     }

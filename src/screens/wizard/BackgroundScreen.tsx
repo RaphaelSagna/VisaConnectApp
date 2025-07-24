@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Listbox, Transition, Combobox } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import countries from 'world-countries';
+import { apiPatch } from '../../api';
 
 const countryNames = countries.map((c) => c.name.common).sort();
 // Extract and deduplicate all languages from world-countries
@@ -79,26 +80,14 @@ const BackgroundScreen: React.FC = () => {
       const userData = localStorage.getItem('userData');
       const user = userData ? JSON.parse(userData) : null;
       const uid = user?.uid;
-      const token = localStorage.getItem('userToken');
-      if (!uid || !token) throw new Error('User not authenticated');
-      const res = await fetch(`/api/user/${uid}/background_identity`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          nationality: form.nationality,
-          languages: form.languages,
-          workHistory: form.workHistory,
-          relationshipStatus: form.relationshipStatus,
-          stayInUS: form.stayInUS,
-        }),
+      if (!uid) throw new Error('User not authenticated');
+      await apiPatch(`/api/user/${uid}/background_identity`, {
+        nationality: form.nationality,
+        languages: form.languages,
+        workHistory: form.workHistory,
+        relationshipStatus: form.relationshipStatus,
+        stayInUS: form.stayInUS,
       });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to save background info');
-      }
       setLoading(false);
       navigate('/lifestyle');
     } catch (err: any) {

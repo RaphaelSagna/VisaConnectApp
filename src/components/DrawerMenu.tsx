@@ -32,6 +32,9 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
     }
   };
 
+  // Only Dashboard and Settings are enabled
+  const enabledLabels = ['Dashboard', 'Settings'];
+
   return (
     <>
       {/* Overlay */}
@@ -54,25 +57,31 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
         </div>
         {/* Menu Items */}
         <nav className="flex flex-col px-2 pt-2 pb-4">
-          {menuItems.slice(0, 5).map((item) => (
-            <button
-              key={item.label}
-              className={`w-full text-left px-6 py-3 rounded transition font-medium text-base ${
-                item.label === 'Settings' && highlight === 'settings'
-                  ? 'bg-gray-100 font-bold text-gray-900'
-                  : 'text-gray-800 hover:bg-gray-50'
-              } ${item.label === 'Settings' ? 'mt-1' : ''}`}
-              onClick={() => handleMenuItemClick(item)}
-            >
-              {item.label}
-            </button>
-          ))}
+          {menuItems.slice(0, 5).map((item) => {
+            const enabled = enabledLabels.includes(item.label);
+            return (
+              <button
+                key={item.label}
+                className={`w-full text-left px-6 py-3 rounded transition font-medium text-base ${
+                  item.label === 'Settings' && highlight === 'settings'
+                    ? 'bg-gray-100 font-bold text-gray-900'
+                    : 'text-gray-800 hover:bg-gray-50'
+                } ${item.label === 'Settings' ? 'mt-1' : ''} ${
+                  !enabled ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                onClick={enabled ? () => handleMenuItemClick(item) : undefined}
+                disabled={!enabled}
+              >
+                {item.label}
+              </button>
+            );
+          })}
           {/* Divider */}
           <div className="border-t border-gray-200 my-2" />
           {/* Contact us */}
           <button
-            className="w-full text-left px-6 py-3 rounded transition text-gray-800 hover:bg-gray-50 font-medium text-base"
-            onClick={() => handleMenuItemClick(menuItems[5])}
+            className="w-full text-left px-6 py-3 rounded transition text-gray-800 hover:bg-gray-50 font-medium text-base opacity-50 cursor-not-allowed"
+            disabled
           >
             Contact us
           </button>

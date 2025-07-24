@@ -42,10 +42,10 @@ app.get('/api/hello', (req, res) => {
 });
 (0, user_1.default)(app, firebase_admin_1.default, db, auth);
 // Serve static files from the React app build
-app.use(express_1.default.static(path_1.default.join(__dirname, '../build')));
+app.use(express_1.default.static(path_1.default.join(__dirname, '../../build')));
 // Serve React app for all other routes
 app.get('*', (req, res) => {
-    res.sendFile(path_1.default.join(__dirname, '../build', 'index.html'));
+    res.sendFile(path_1.default.join(__dirname, '../../build', 'index.html'));
 });
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

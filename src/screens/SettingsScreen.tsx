@@ -102,22 +102,28 @@ const SettingsScreen: React.FC = () => {
       <div className="px-4 mt-4">
         <h2 className="text-gray-700 text-base font-semibold mb-2">Account</h2>
         <div className="bg-white rounded-2xl shadow p-2 divide-y divide-gray-100">
-          {menuItemsAccount.map((item, idx) => (
-            <button
-              key={item.label}
-              className={`flex items-center w-full px-2 py-3 text-left gap-3 ${
-                item.danger ? 'text-red-600' : 'text-gray-800'
-              } hover:bg-gray-50 focus:outline-none`}
-              onClick={item.onClick}
-            >
-              <item.icon
-                className={`h-5 w-5 ${
-                  item.danger ? 'text-red-500' : 'text-gray-400'
+          {menuItemsAccount.map((item, idx) => {
+            const isLogout = item.label === 'Logout';
+            return (
+              <button
+                key={item.label}
+                className={`flex items-center w-full px-2 py-3 text-left gap-3 ${
+                  item.danger ? 'text-red-600' : 'text-gray-800'
+                } hover:bg-gray-50 focus:outline-none ${
+                  !isLogout ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
-              />
-              <span className="flex-1 text-base">{item.label}</span>
-            </button>
-          ))}
+                onClick={isLogout ? item.onClick : undefined}
+                disabled={!isLogout}
+              >
+                <item.icon
+                  className={`h-5 w-5 ${
+                    item.danger ? 'text-red-500' : 'text-gray-400'
+                  }`}
+                />
+                <span className="flex-1 text-base">{item.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -130,8 +136,8 @@ const SettingsScreen: React.FC = () => {
           {menuItemsPreferences.map((item, idx) => (
             <button
               key={item.label}
-              className="flex items-center w-full px-2 py-3 text-left gap-3 text-gray-800 hover:bg-gray-50 focus:outline-none"
-              onClick={item.onClick}
+              className="flex items-center w-full px-2 py-3 text-left gap-3 text-gray-800 opacity-50 cursor-not-allowed focus:outline-none"
+              disabled
             >
               <item.icon className="h-5 w-5 text-gray-400" />
               <span className="flex-1 text-base">{item.label}</span>

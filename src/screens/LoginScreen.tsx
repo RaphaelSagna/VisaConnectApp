@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import Button from '../components/Button';
 import { useNavigate } from 'react-router-dom';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../api/firebase';
 
 const Input = React.forwardRef<
   HTMLInputElement,
@@ -49,31 +51,26 @@ const SignInScreen: React.FC = () => {
     setApiError('');
 
     try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: form.email,
-          password: form.password,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Sign in failed');
-      }
-
-      // Store user data and token
-      localStorage.setItem('userToken', data.token);
-      localStorage.setItem('userData', JSON.stringify(data));
-
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        form.email,
+        form.password
+      );
+      const idToken = await userCredential.user.getIdToken();
+      // Store ID token for API calls
+      localStorage.setItem('userToken', idToken);
+      // Store user data if needed
+      localStorage.setItem(
+        'userData',
+        JSON.stringify({
+          uid: userCredential.user.uid,
+          email: userCredential.user.email,
+        })
+      );
       // Navigate to dashboard
       navigate('/dashboard');
-    } catch (error) {
-      setApiError(error instanceof Error ? error.message : 'Sign in failed');
+    } catch (error: any) {
+      setApiError(error.message || 'Sign in failed');
     } finally {
       setSubmitting(false);
     }

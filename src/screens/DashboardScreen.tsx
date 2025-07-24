@@ -2,31 +2,38 @@ import React, { useState, useEffect } from 'react';
 import Button from '../components/Button';
 import { useNavigate } from 'react-router-dom';
 import DrawerMenu from '../components/DrawerMenu';
+import { apiGet } from '../api';
 
 const DashboardScreen: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profile, setProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
+    const userData = localStorage.getItem('userData');
+    const user = userData ? JSON.parse(userData) : null;
+    const uid = user?.uid;
+    // Try to get profile from localStorage first
+    const cachedProfile = localStorage.getItem('userProfile');
+    if (cachedProfile) {
+      setProfile(JSON.parse(cachedProfile));
+      setLoading(false);
+      return;
+    }
+    if (!uid) {
+      setError('User not authenticated');
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError('');
     const fetchProfile = async () => {
-      setLoading(true);
-      setError('');
       try {
-        const userData = localStorage.getItem('userData');
-        const user = userData ? JSON.parse(userData) : null;
-        const uid = user?.uid;
-        if (!uid) throw new Error('User not authenticated');
-        const res = await fetch(`/api/user/${uid}/profile`);
-        if (!res.ok) {
-          const data = await res.json();
-          throw new Error(data.error || 'Failed to fetch profile');
-        }
-        const data = await res.json();
-        console.log('DashboardScreen data', data);
+        const data = await apiGet(`/api/user/${uid}/profile`);
         setProfile(data);
+        localStorage.setItem('userProfile', JSON.stringify(data));
       } catch (err: any) {
         setError(err.message || 'Failed to fetch profile');
       } finally {

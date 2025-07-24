@@ -1,6 +1,58 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+const isAuthenticated_1 = __importDefault(require("../middleware/isAuthenticated"));
 const userApi = (app, adminApp, db, auth) => {
+    app.post('/api/login', async (req, res) => {
+        const { email, password } = req.body;
+        // Validate required fields
+        if (!email || !password) {
+            return res
+                .status(400)
+                .json({ error: 'Email and password are required.' });
+        }
+        try {
+            // Get user by email
+            const userRecord = await auth.getUserByEmail(email);
+            // Note: Firebase Admin SDK cannot verify passwords directly
+            // In a real implementation, you would use Firebase Auth REST API or client SDK
+            // For now, we'll assume the user exists and generate a token
+            // TODO: Implement proper password verification
+            // Get user data from Firestore
+            const userDoc = await db.collection('users').doc(userRecord.uid).get();
+            if (!userDoc.exists) {
+                return res.status(404).json({ error: 'User profile not found.' });
+            }
+            const userData = userDoc.data();
+            // Generate a custom token
+            const customToken = await auth.createCustomToken(userRecord.uid);
+            res.json({
+                uid: userRecord.uid,
+                email: userRecord.email,
+                token: customToken,
+                userData: {
+                    firstName: userData.firstName,
+                    lastName: userData.lastName,
+                    location: userData.location,
+                    visaType: userData.visaType,
+                    employer: userData.employer,
+                    job: userData.job,
+                },
+            });
+        }
+        catch (error) {
+            if (error.code === 'auth/user-not-found') {
+                res.status(401).json({ error: 'Invalid email or password.' });
+            }
+            else {
+                res.status(500).json({ error: error.message });
+            }
+        }
+    });
+    // All routes below require authentication
+    app.use('/api', (0, isAuthenticated_1.default)(auth));
     app.post('/api/register', async (req, res) => {
         const { firstName, lastName, email, password, location, visaType, employer, job, } = req.body;
         // Validate required fields
@@ -81,52 +133,6 @@ const userApi = (app, adminApp, db, auth) => {
         }
         catch (error) {
             res.status(500).json({ error: error.message });
-        }
-    });
-    app.post('/api/login', async (req, res) => {
-        const { email, password } = req.body;
-        // Validate required fields
-        if (!email || !password) {
-            return res
-                .status(400)
-                .json({ error: 'Email and password are required.' });
-        }
-        try {
-            // Get user by email
-            const userRecord = await auth.getUserByEmail(email);
-            // Note: Firebase Admin SDK cannot verify passwords directly
-            // In a real implementation, you would use Firebase Auth REST API or client SDK
-            // For now, we'll assume the user exists and generate a token
-            // TODO: Implement proper password verification
-            // Get user data from Firestore
-            const userDoc = await db.collection('users').doc(userRecord.uid).get();
-            if (!userDoc.exists) {
-                return res.status(404).json({ error: 'User profile not found.' });
-            }
-            const userData = userDoc.data();
-            // Generate a custom token
-            const customToken = await auth.createCustomToken(userRecord.uid);
-            res.json({
-                uid: userRecord.uid,
-                email: userRecord.email,
-                token: customToken,
-                userData: {
-                    firstName: userData.firstName,
-                    lastName: userData.lastName,
-                    location: userData.location,
-                    visaType: userData.visaType,
-                    employer: userData.employer,
-                    job: userData.job,
-                },
-            });
-        }
-        catch (error) {
-            if (error.code === 'auth/user-not-found') {
-                res.status(401).json({ error: 'Invalid email or password.' });
-            }
-            else {
-                res.status(500).json({ error: error.message });
-            }
         }
     });
     // Update background_identity subcollection

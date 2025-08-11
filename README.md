@@ -1,6 +1,23 @@
-# Getting Started with Create React App
+# VisaConnect
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A comprehensive immigration journey platform that helps users connect with their immigration community, share experiences, and navigate their visa journey together.
+
+## Features
+
+- User authentication and account management
+- Interactive wizard for personal background and preferences
+- Community knowledge sharing
+- Lifestyle and travel exploration tools
+- Progressive Web App (PWA) support
+- Responsive design with Tailwind CSS
+
+## Tech Stack
+
+- React 19 with TypeScript
+- Express.js backend
+- Firebase for authentication and database
+- Tailwind CSS for styling
+- PWA capabilities
 
 ## Available Scripts
 

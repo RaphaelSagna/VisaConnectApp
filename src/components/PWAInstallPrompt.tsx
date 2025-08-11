@@ -61,7 +61,7 @@ const PWAInstallPrompt: React.FC = () => {
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <h3 className="text-sm font-semibold text-gray-900">
-            Install Visa Connect
+            Install VisaConnect
           </h3>
           <p className="text-xs text-gray-600 mt-1">
             Add to your home screen for quick access

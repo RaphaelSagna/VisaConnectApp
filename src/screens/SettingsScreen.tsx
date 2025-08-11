@@ -28,7 +28,7 @@ const SettingsScreen: React.FC = () => {
     { label: 'Edit profile', icon: UserIcon, onClick: () => {} },
     { label: 'Change Email', icon: LockClosedIcon, onClick: () => {} },
     { label: 'Change Password', icon: LockClosedIcon, onClick: () => {} },
-    { label: 'Email Visa Connect', icon: EnvelopeIcon, onClick: () => {} },
+    { label: 'Email VisaConnect', icon: EnvelopeIcon, onClick: () => {} },
     { label: 'Logout', icon: LockClosedIcon, onClick: handleLogout },
     {
       label: 'Delete account',

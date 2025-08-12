@@ -54,27 +54,16 @@ const userApi = (app, adminApp, db, auth) => {
     // All routes below require authentication
     app.use('/api', (0, isAuthenticated_1.default)(auth));
     app.post('/api/register', async (req, res) => {
-        const { firstName, lastName, email, password, location, visaType, employer, job, } = req.body;
+        const { uid, firstName, lastName, email, location, visaType, employer, job, } = req.body;
         // Validate required fields
-        if (!firstName ||
-            !lastName ||
-            !email ||
-            !password ||
-            !location ||
-            !visaType) {
+        if (!uid || !firstName || !lastName || !email || !location || !visaType) {
             return res.status(400).json({ error: 'Missing required fields.' });
         }
         try {
-            // Create user in Firebase Auth
-            const userRecord = await auth.createUser({
-                email,
-                password,
-                displayName: `${firstName} ${lastName}`,
-            });
             // Store user profile in Firestore
             await db
                 .collection('users')
-                .doc(userRecord.uid)
+                .doc(uid)
                 .set({
                 firstName,
                 lastName,
@@ -85,8 +74,8 @@ const userApi = (app, adminApp, db, auth) => {
                 job: job || '',
                 createdAt: adminApp.firestore.FieldValue.serverTimestamp(),
             });
-            // Initialize subcollections with default values
-            const userRef = db.collection('users').doc(userRecord.uid);
+            // Initialize subcollections with default values (if not already present)
+            const userRef = db.collection('users').doc(uid);
             await userRef
                 .collection('profileAnswers')
                 .doc('background_identity')
@@ -97,7 +86,7 @@ const userApi = (app, adminApp, db, auth) => {
                 jobDiscoveryMethod: '',
                 visaChangeJourney: '',
                 otherUSJobs: [],
-            });
+            }, { merge: true });
             await userRef
                 .collection('profileAnswers')
                 .doc('lifestyle_personality')
@@ -108,28 +97,19 @@ const userApi = (app, adminApp, db, auth) => {
                 hasCar: false,
                 offersRides: false,
                 relationshipStatus: '',
-            });
+            }, { merge: true });
             await userRef.collection('profileAnswers').doc('travel_exploration').set({
                 roadTrips: false,
                 favoritePlace: '',
                 travelTips: '',
                 willingToGuide: false,
-            });
-            await userRef
-                .collection('profileAnswers')
-                .doc('knowledge_community')
-                .set({
+            }, { merge: true });
+            await userRef.collection('profileAnswers').doc('knowledge_community').set({
                 mentorshipInterest: false,
                 jobBoards: [],
                 visaAdvice: '',
-            });
-            // Generate a custom token for the new user
-            const customToken = await auth.createCustomToken(userRecord.uid);
-            res.status(201).json({
-                uid: userRecord.uid,
-                email: userRecord.email,
-                token: customToken,
-            });
+            }, { merge: true });
+            res.status(201).json({ success: true });
         }
         catch (error) {
             res.status(500).json({ error: error.message });

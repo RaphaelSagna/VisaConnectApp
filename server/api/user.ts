@@ -63,10 +63,9 @@ const userApi = (
     }
   });
 
-  // All routes below require authentication
-  app.use('/api', isAuthenticated(auth));
-
   app.post('/api/register', async (req: Request, res: Response) => {
+    console.log('Register endpoint called with body:', req.body);
+
     const {
       uid,
       firstName,
@@ -77,10 +76,20 @@ const userApi = (
       employer,
       job,
     } = req.body;
+
     // Validate required fields
     if (!uid || !firstName || !lastName || !email || !location || !visaType) {
+      console.log('Missing required fields:', {
+        uid,
+        firstName,
+        lastName,
+        email,
+        location,
+        visaType,
+      });
       return res.status(400).json({ error: 'Missing required fields.' });
     }
+
     try {
       // Store user profile in Firestore
       await db
@@ -146,9 +155,13 @@ const userApi = (
       );
       res.status(201).json({ success: true });
     } catch (error: any) {
+      console.error('Error in register endpoint:', error);
       res.status(500).json({ error: error.message });
     }
   });
+
+  // All routes below require authentication
+  app.use('/api', isAuthenticated(auth));
 
   // Update background_identity subcollection
   app.patch(

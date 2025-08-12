@@ -56,21 +56,60 @@ const SignInScreen: React.FC = () => {
         form.email,
         form.password
       );
-      const idToken = await userCredential.user.getIdToken();
-      // Store ID token for API calls
-      localStorage.setItem('userToken', idToken);
-      // Store user data if needed
-      localStorage.setItem(
-        'userData',
-        JSON.stringify({
-          uid: userCredential.user.uid,
-          email: userCredential.user.email,
-        })
-      );
-      // Navigate to dashboard
-      navigate('/dashboard');
+
+      // Verify successful sign-in
+      if (userCredential && userCredential.user && userCredential.user.uid) {
+        const idToken = await userCredential.user.getIdToken();
+
+        // Verify we have a valid token
+        if (idToken) {
+          // Store ID token for API calls
+          localStorage.setItem('userToken', idToken);
+          // Store user data if needed
+          localStorage.setItem(
+            'userData',
+            JSON.stringify({
+              uid: userCredential.user.uid,
+              email: userCredential.user.email,
+            })
+          );
+          console.log('ID TOKEN', idToken);
+
+          // Navigate to dashboard
+          navigate('/dashboard');
+        } else {
+          throw new Error('Failed to get authentication token');
+        }
+      } else {
+        throw new Error('Invalid user credentials received');
+      }
     } catch (error: any) {
-      setApiError(error.message || 'Sign in failed');
+      // Map Firebase error codes to user-friendly messages
+      let userFriendlyError = 'Sign in failed';
+
+      if (error.code) {
+        switch (error.code) {
+          case 'auth/user-not-found':
+          case 'auth/wrong-password':
+          case 'auth/invalid-credential':
+            userFriendlyError = 'Username and/or password is invalid';
+            break;
+          case 'auth/too-many-requests':
+            userFriendlyError =
+              'Too many failed attempts. Please try again later.';
+            break;
+          case 'auth/user-disabled':
+            userFriendlyError = 'This account has been disabled.';
+            break;
+          case 'auth/invalid-email':
+            userFriendlyError = 'Please enter a valid email address.';
+            break;
+          default:
+            userFriendlyError = 'Sign in failed. Please try again.';
+        }
+      }
+
+      setApiError(userFriendlyError);
     } finally {
       setSubmitting(false);
     }

@@ -37,9 +37,9 @@ console.log('Firebase Admin initialized');
 const app: Express = express();
 const PORT = process.env.PORT || 8080;
 
-// Enable CORS for API routes
-app.use('/api', cors());
+// Middleware setup
 app.use(express.json()); // For parsing JSON bodies
+app.use(cors()); // Enable CORS for all routes
 
 // Example API route
 app.get('/api/hello', (req: Request, res: Response) => {

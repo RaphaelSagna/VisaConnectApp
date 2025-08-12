@@ -1,5 +1,4 @@
 export const getToken = () => localStorage.getItem('userToken');
-const API_BASE = process.env.REACT_APP_API_BASE || '';
 
 const defaultHeaders = () => ({
   'Content-Type': 'application/json',
@@ -7,7 +6,7 @@ const defaultHeaders = () => ({
 });
 
 export async function apiGet<T>(url: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${url}`, {
+  const res = await fetch(url, {
     headers: defaultHeaders(),
   });
   if (!res.ok) throw new Error(await res.text());
@@ -15,7 +14,7 @@ export async function apiGet<T>(url: string): Promise<T> {
 }
 
 export async function apiPost<T>(url: string, body: any): Promise<T> {
-  const res = await fetch(`${API_BASE}${url}`, {
+  const res = await fetch(url, {
     method: 'POST',
     headers: defaultHeaders(),
     body: JSON.stringify(body),
@@ -25,7 +24,7 @@ export async function apiPost<T>(url: string, body: any): Promise<T> {
 }
 
 export async function apiPatch<T>(url: string, body: any): Promise<T> {
-  const res = await fetch(`${API_BASE}${url}`, {
+  const res = await fetch(url, {
     method: 'PATCH',
     headers: defaultHeaders(),
     body: JSON.stringify(body),
@@ -35,7 +34,7 @@ export async function apiPatch<T>(url: string, body: any): Promise<T> {
 }
 
 export async function apiDelete<T>(url: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${url}`, {
+  const res = await fetch(url, {
     method: 'DELETE',
     headers: defaultHeaders(),
   });

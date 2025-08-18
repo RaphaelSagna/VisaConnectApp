@@ -2,6 +2,7 @@ import React from 'react';
 import Button from '../components/Button';
 import illustration from '../assets/images/welcome_image.png'; // Replace with your actual illustration image
 import { useNavigate } from 'react-router-dom';
+import logo from '../assets/images/logo.svg';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -9,13 +10,7 @@ const LoginPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-8">
       {/* Logo and Title */}
       <div className="mb-2 flex flex-col items-center">
-        <img src={illustration} alt="VisaConnect Logo" className="h-12 mb-2" />
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900">
-          VisaConnect
-        </h1>
-        <p className="text-xs md:text-sm tracking-widest text-gray-500 font-semibold mt-1">
-          FOR VISA WORKERS, BY VISA WORKERS
-        </p>
+        <img src={logo} alt="Logo" className="" />
       </div>
       {/* Description */}
       <p className="text-gray-600 text-center text-sm md:text-base mb-4 max-w-xl">

@@ -120,7 +120,7 @@ const SignInScreen: React.FC = () => {
       <div className="w-full max-w-md flex flex-col items-center">
         {/* Header */}
         <div className="flex flex-col items-center mb-8">
-          <div className="text-4xl font-bold mb-2">V</div>
+          <div className="text-4xl font-bold mb-2">VisaConnect</div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Welcome Back
           </h1>

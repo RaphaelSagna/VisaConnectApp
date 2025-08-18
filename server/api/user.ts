@@ -91,68 +91,29 @@ const userApi = (
     }
 
     try {
-      // Store user profile in Firestore
-      await db
-        .collection('users')
-        .doc(uid)
-        .set({
-          firstName,
-          lastName,
-          email,
-          location,
-          visaType,
-          employer: employer || '',
-          job: job || '',
-          createdAt: adminApp.firestore.FieldValue.serverTimestamp(),
-        });
+      // Temporarily skip Firestore operations
+      console.log('Skipping Firestore operations for now...');
 
-      // Initialize subcollections with default values (if not already present)
-      const userRef = db.collection('users').doc(uid);
-      await userRef
-        .collection('profileAnswers')
-        .doc('background_identity')
-        .set(
-          {
-            nationality: '',
-            languages: [],
-            firstTimeInUS: { year: null, location: '', visa: '' },
-            jobDiscoveryMethod: '',
-            visaChangeJourney: '',
-            otherUSJobs: [],
-          },
-          { merge: true }
-        );
-      await userRef
-        .collection('profileAnswers')
-        .doc('lifestyle_personality')
-        .set(
-          {
-            hobbies: [],
-            favoriteState: '',
-            preferredOutings: [],
-            hasCar: false,
-            offersRides: false,
-            relationshipStatus: '',
-          },
-          { merge: true }
-        );
-      await userRef.collection('profileAnswers').doc('travel_exploration').set(
-        {
-          roadTrips: false,
-          favoritePlace: '',
-          travelTips: '',
-          willingToGuide: false,
-        },
-        { merge: true }
-      );
-      await userRef.collection('profileAnswers').doc('knowledge_community').set(
-        {
-          mentorshipInterest: false,
-          jobBoards: [],
-          visaAdvice: '',
-        },
-        { merge: true }
-      );
+      // TODO: Re-enable Firestore operations when database is set up
+      // Store user profile in Firestore
+      // await db
+      //   .collection('users')
+      //   .doc(uid)
+      //   .set({
+      //     firstName,
+      //     lastName,
+      //     email,
+      //     location,
+      //     visaType,
+      //     employer: employer || '',
+      //     job: job || '',
+      //     createdAt: adminApp.firestore.FieldValue.serverTimestamp(),
+      //   });
+      //
+      // // Initialize subcollections with default values (if not already present)
+      // const userRef = db.collection('users').doc(uid);
+      // ... subcollection initialization code ...
+
       res.status(201).json({ success: true });
     } catch (error: any) {
       console.error('Error in register endpoint:', error);

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import Button from '../components/Button';
 import { useNavigate } from 'react-router-dom';
 import DrawerMenu from '../components/DrawerMenu';
-import { apiGet } from '../api';
 
 const DashboardScreen: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -14,33 +13,54 @@ const DashboardScreen: React.FC = () => {
   useEffect(() => {
     const userData = localStorage.getItem('userData');
     const user = userData ? JSON.parse(userData) : null;
-    const uid = user?.uid;
-    // Try to get profile from localStorage first
-    const cachedProfile = localStorage.getItem('userProfile');
-    if (cachedProfile) {
-      setProfile(JSON.parse(cachedProfile));
-      setLoading(false);
-      return;
-    }
-    if (!uid) {
+
+    if (!user) {
       setError('User not authenticated');
       setLoading(false);
       return;
     }
-    setLoading(true);
-    setError('');
-    const fetchProfile = async () => {
-      try {
-        const data = await apiGet(`/api/user/${uid}/profile`);
-        setProfile(data);
-        localStorage.setItem('userProfile', JSON.stringify(data));
-      } catch (err: any) {
-        setError(err.message || 'Failed to fetch profile');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProfile();
+
+    // Use localStorage data instead of API call
+    setProfile({
+      firstName: user.firstName || 'User',
+      lastName: user.lastName || '',
+      email: user.email || '',
+      location: user.location || '',
+      visaType: user.visaType || '',
+      employer: user.employer || '',
+      job: user.job || '',
+      // Mock profile answers for now
+      profileAnswers: {
+        background_identity: {
+          nationality: '',
+          languages: [],
+          firstTimeInUS: { year: null, location: '', visa: '' },
+          jobDiscoveryMethod: '',
+          visaChangeJourney: '',
+          otherUSJobs: [],
+        },
+        lifestyle_personality: {
+          hobbies: [],
+          favoriteState: '',
+          preferredOutings: [],
+          hasCar: false,
+          offersRides: false,
+          relationshipStatus: '',
+        },
+        travel_exploration: {
+          roadTrips: false,
+          favoritePlace: '',
+          travelTips: '',
+          willingToGuide: false,
+        },
+        knowledge_community: {
+          mentorshipInterest: false,
+          jobBoards: [],
+          visaAdvice: '',
+        },
+      },
+    });
+    setLoading(false);
   }, []);
 
   const handleMenuClick = () => setMenuOpen(true);

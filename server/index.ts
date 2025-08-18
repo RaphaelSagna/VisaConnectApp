@@ -48,12 +48,16 @@ app.get('/api/hello', (req: Request, res: Response) => {
 
 userApi(app, admin, db, auth);
 
-// Serve static files from the React app build
-app.use(express.static(path.join(__dirname, '../../build')));
+// Serve static files from the React app build FIRST
+const buildPath = path.join(__dirname, '../../build');
+console.log('Serving static files from:', buildPath);
+app.use(express.static(buildPath));
 
-// Serve React app for all other routes
+// Serve React app for all other routes LAST (after static files)
 app.get('*', (req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, '../../build', 'index.html'));
+  const indexPath = path.join(buildPath, 'index.html');
+  console.log('Serving index.html from:', indexPath);
+  res.sendFile(indexPath);
 });
 
 app.listen(PORT, () => {

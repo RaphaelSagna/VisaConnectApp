@@ -3,6 +3,7 @@ import Button from '../components/Button';
 import { useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../api/firebase';
+import CityAutocomplete from '../components/CityAutocomplete';
 import { apiPost } from '../api';
 
 const Input = React.forwardRef<
@@ -253,11 +254,10 @@ const CreateAccountPage: React.FC = () => {
                   </span>
                 )}
               </div>
-              <Input
-                name="location"
-                placeholder="Location: City, state"
+              <CityAutocomplete
                 value={form.location}
-                onChange={handleChange}
+                onChange={(value) => setForm({ ...form, location: value })}
+                placeholder="Location: City, state"
                 required
               />
               {errors.location && (

@@ -33,19 +33,23 @@ const auth = firebase_admin_1.default.auth();
 console.log('Firebase Admin initialized');
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 8080;
-// Enable CORS for API routes
-app.use('/api', (0, cors_1.default)());
+// Middleware setup
 app.use(express_1.default.json()); // For parsing JSON bodies
+app.use((0, cors_1.default)()); // Enable CORS for all routes
 // Example API route
 app.get('/api/hello', (req, res) => {
     res.json({ message: 'Hello from the backend!' });
 });
 (0, user_1.default)(app, firebase_admin_1.default, db, auth);
-// Serve static files from the React app build
-app.use(express_1.default.static(path_1.default.join(__dirname, '../../build')));
-// Serve React app for all other routes
+// Serve static files from the React app build FIRST
+const buildPath = path_1.default.join(__dirname, '../../build');
+console.log('Serving static files from:', buildPath);
+app.use(express_1.default.static(buildPath));
+// Serve React app for all other routes LAST (after static files)
 app.get('*', (req, res) => {
-    res.sendFile(path_1.default.join(__dirname, '../../build', 'index.html'));
+    const indexPath = path_1.default.join(buildPath, 'index.html');
+    console.log('Serving index.html from:', indexPath);
+    res.sendFile(indexPath);
 });
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

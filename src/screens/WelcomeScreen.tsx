@@ -2,7 +2,7 @@ import React from 'react';
 import Button from '../components/Button';
 import illustration from '../assets/images/welcome_image.png'; // Replace with your actual illustration image
 import { useNavigate } from 'react-router-dom';
-import logo from '../assets/images/logo.svg';
+import logo from '../assets/images/logo.png';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();

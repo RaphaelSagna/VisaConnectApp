@@ -1,9 +1,9 @@
-const CACHE_NAME = 'visa-connect-v1';
+const CACHE_NAME = 'visa-connect-v2';
 const urlsToCache = [
   '/',
-  '/static/js/main.07e64394.js',
-  '/static/css/main.b0ecca83.css',
-  '/static/js/453.d12e11ba.chunk.js',
+  '/static/js/main.b6f47f36.js',
+  '/static/css/main.c947379c.css',
+  '/static/js/453.26a5161b.chunk.js',
   '/manifest.json',
   '/favicon.ico',
   '/logo192.png',
@@ -52,4 +52,9 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
+});
+
+// Force update by skipping waiting
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
 });

@@ -1,8 +1,22 @@
 import React, { useState } from 'react';
 import Button from '../components/Button';
 import { useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../api/firebase';
+import { apiPostPublic } from '../api';
+
+// Types for API responses
+interface LoginResponse {
+  success: boolean;
+  message: string;
+  data: {
+    user: {
+      id: string;
+      email: string;
+      first_name?: string;
+      last_name?: string;
+    };
+    token: string;
+  };
+}
 
 const Input = React.forwardRef<
   HTMLInputElement,
@@ -51,61 +65,42 @@ const SignInScreen: React.FC = () => {
     setApiError('');
 
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        form.email,
-        form.password
-      );
+      // Login with the new API endpoint
+      const response = await apiPostPublic<LoginResponse>('/api/auth/login', {
+        email: form.email,
+        password: form.password,
+      });
 
-      // Verify successful sign-in
-      if (userCredential && userCredential.user && userCredential.user.uid) {
-        const idToken = await userCredential.user.getIdToken();
+      // Store the token and user data
+      if (response.data && response.data.token) {
+        localStorage.setItem('userToken', response.data.token);
+        localStorage.setItem(
+          'userData',
+          JSON.stringify({
+            uid: response.data.user.id,
+            email: response.data.user.email,
+            first_name: response.data.user.first_name,
+            last_name: response.data.user.last_name,
+          })
+        );
 
-        // Verify we have a valid token
-        if (idToken) {
-          // Store ID token for API calls
-          localStorage.setItem('userToken', idToken);
-          // Store user data if needed
-          localStorage.setItem(
-            'userData',
-            JSON.stringify({
-              uid: userCredential.user.uid,
-              email: userCredential.user.email,
-            })
-          );
-          console.log('ID TOKEN', idToken);
-
-          // Navigate to dashboard
-          navigate('/dashboard');
-        } else {
-          throw new Error('Failed to get authentication token');
-        }
+        // Navigate to dashboard
+        navigate('/dashboard');
       } else {
-        throw new Error('Invalid user credentials received');
+        throw new Error('Invalid response from server');
       }
     } catch (error: any) {
-      // Map Firebase error codes to user-friendly messages
+      // Handle API errors
       let userFriendlyError = 'Sign in failed';
 
-      if (error.code) {
-        switch (error.code) {
-          case 'auth/user-not-found':
-          case 'auth/wrong-password':
-          case 'auth/invalid-credential':
-            userFriendlyError = 'Username and/or password is invalid';
-            break;
-          case 'auth/too-many-requests':
-            userFriendlyError =
-              'Too many failed attempts. Please try again later.';
-            break;
-          case 'auth/user-disabled':
-            userFriendlyError = 'This account has been disabled.';
-            break;
-          case 'auth/invalid-email':
-            userFriendlyError = 'Please enter a valid email address.';
-            break;
-          default:
-            userFriendlyError = 'Sign in failed. Please try again.';
+      if (error.message) {
+        if (error.message.includes('Invalid email or password')) {
+          userFriendlyError = 'Username and/or password is invalid';
+        } else if (error.message.includes('too many')) {
+          userFriendlyError =
+            'Too many failed attempts. Please try again later.';
+        } else {
+          userFriendlyError = error.message;
         }
       }
 

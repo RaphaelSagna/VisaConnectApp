@@ -7,34 +7,30 @@ import { Firestore } from 'firebase-admin/firestore';
 import { Auth } from 'firebase-admin/auth';
 // Database connection
 import pool from './db/config';
-// Register user API routes
-import userApi from './api/user';
+// Register API routes
+import authApi from './api/auth';
 
-// Initialize Firebase Admin SDK (temporarily disabled for database testing)
-// let serviceAccount: ServiceAccount;
+// Initialize Firebase Admin SDK
+let serviceAccount: ServiceAccount;
 
-// if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-//   // Production: Use environment variable
-//   serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-// } else {
-//   // Development: Use local file
-//   try {
-//     serviceAccount = require('./firebaseServiceAccount.json');
-//   } catch (error) {
-//     console.error(
-//       'Firebase service account not found. Please set FIREBASE_SERVICE_ACCOUNT environment variable or add firebaseServiceAccount.json'
-//       );
-//     process.exit(1);
-//   }
-// }
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+  // Production: Use environment variable
+  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+} else {
+  // Development: Use local file
+  try {
+    serviceAccount = require('./firebaseServiceAccount.json');
+  } catch (error) {
+    console.error(
+      'Firebase service account not found. Please set FIREBASE_SERVICE_ACCOUNT environment variable or add firebaseServiceAccount.json'
+    );
+    process.exit(1);
+  }
+}
 
-// admin.initializeApp({
-//   credential: admin.credential.cert(serviceAccount),
-// });
-
-// const db: Firestore = admin.firestore();
-// const auth: Auth = admin.auth();
-// console.log('Firebase Admin initialized');
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
 
 const app: Express = express();
 const PORT = process.env.PORT || 8080;
@@ -53,12 +49,43 @@ pool
 app.use(express.json()); // For parsing JSON bodies
 app.use(cors()); // Enable CORS for all routes
 
-// Example API route
-app.get('/api/hello', (req: Request, res: Response) => {
-  res.json({ message: 'Hello from the backend!' });
+// Health check endpoint
+app.get('/api/health', async (req: Request, res: Response) => {
+  try {
+    // Test database connection
+    const dbResult = await pool.query(
+      'SELECT NOW() as timestamp, version() as version'
+    );
+
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      services: {
+        database: 'connected',
+        firebase: 'initialized',
+        server: 'running',
+      },
+      database: {
+        timestamp: dbResult.rows[0].timestamp,
+        version: dbResult.rows[0].version.split(' ')[1], // Extract version number
+      },
+    });
+  } catch (error: any) {
+    res.status(503).json({
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      error: error.message,
+      services: {
+        database: 'disconnected',
+        firebase: 'initialized',
+        server: 'running',
+      },
+    });
+  }
 });
 
-// userApi(app, admin, db, auth); // Temporarily disabled for database testing
+// Register API routes
+authApi(app);
 
 // Only serve static files in production
 if (process.env.NODE_ENV === 'production') {

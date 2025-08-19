@@ -1,10 +1,23 @@
 import React, { useState } from 'react';
 import Button from '../components/Button';
 import { useNavigate } from 'react-router-dom';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../api/firebase';
 import CityAutocomplete from '../components/CityAutocomplete';
-import { apiPost } from '../api';
+import { apiPostPublic } from '../api';
+
+// Types for API responses
+interface RegisterResponse {
+  success: boolean;
+  message: string;
+  data: {
+    user: {
+      id: string;
+      email: string;
+      first_name?: string;
+      last_name?: string;
+    };
+    token: string;
+  };
+}
 
 const Input = React.forwardRef<
   HTMLInputElement,
@@ -25,15 +38,19 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CreateAccountPage: React.FC = () => {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
-    firstName: '',
-    lastName: '',
+    first_name: '',
+    last_name: '',
     email: '',
     password: '',
     confirmPassword: '',
-    visaType: '',
-    location: '',
+    visa_type: '',
+    current_location: {
+      city: '',
+      state: '',
+      country: 'USA',
+    },
+    occupation: '',
     employer: '',
-    job: '',
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [submitting, setSubmitting] = useState(false);
@@ -42,8 +59,9 @@ const CreateAccountPage: React.FC = () => {
 
   const validateStep1 = () => {
     const newErrors: { [key: string]: string } = {};
-    if (!form.firstName.trim()) newErrors.firstName = 'First name is required.';
-    if (!form.lastName.trim()) newErrors.lastName = 'Last name is required.';
+    if (!form.first_name.trim())
+      newErrors.first_name = 'First name is required.';
+    if (!form.last_name.trim()) newErrors.last_name = 'Last name is required.';
     if (!form.email.trim()) newErrors.email = 'Email is required.';
     else if (!emailRegex.test(form.email))
       newErrors.email = 'Invalid email address.';
@@ -59,8 +77,13 @@ const CreateAccountPage: React.FC = () => {
 
   const validateStep2 = () => {
     const newErrors: { [key: string]: string } = {};
-    if (!form.visaType) newErrors.visaType = 'Visa type is required.';
-    if (!form.location.trim()) newErrors.location = 'Location is required.';
+    if (!form.visa_type) newErrors.visa_type = 'Visa type is required.';
+    if (
+      !form.current_location.city.trim() ||
+      !form.current_location.state.trim()
+    ) {
+      newErrors.current_location = 'Location is required.';
+    }
     return newErrors;
   };
 
@@ -95,32 +118,35 @@ const CreateAccountPage: React.FC = () => {
     setApiError('');
 
     try {
-      // Register user with Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        form.email,
-        form.password
+      // Register user with the new API endpoint
+      const response = await apiPostPublic<RegisterResponse>(
+        '/api/auth/register',
+        {
+          email: form.email,
+          password: form.password,
+          first_name: form.first_name,
+          last_name: form.last_name,
+          visa_type: form.visa_type,
+          current_location: form.current_location,
+          occupation: form.occupation,
+          employer: form.employer,
+        }
       );
-      const idToken = await userCredential.user.getIdToken();
-      localStorage.setItem('userToken', idToken);
-      localStorage.setItem(
-        'userData',
-        JSON.stringify({
-          uid: userCredential.user.uid,
-          email: userCredential.user.email,
-        })
-      );
-      // Optionally, send profile data to your backend
-      await apiPost('/api/register', {
-        firstName: form.firstName,
-        lastName: form.lastName,
-        email: form.email,
-        location: form.location,
-        visaType: form.visaType,
-        employer: form.employer,
-        job: form.job,
-        uid: userCredential.user.uid,
-      });
+
+      // Store the token and user data
+      if (response.data && response.data.token) {
+        localStorage.setItem('userToken', response.data.token);
+        localStorage.setItem(
+          'userData',
+          JSON.stringify({
+            uid: response.data.user.id,
+            email: response.data.user.email,
+            first_name: response.data.user.first_name,
+            last_name: response.data.user.last_name,
+          })
+        );
+      }
+
       // Navigate to account created page
       navigate('/account-created');
     } catch (error: any) {
@@ -154,27 +180,27 @@ const CreateAccountPage: React.FC = () => {
               style={{ minHeight: 340 }}
             >
               <Input
-                name="firstName"
+                name="first_name"
                 placeholder="First name"
-                value={form.firstName}
+                value={form.first_name}
                 onChange={handleChange}
                 required
               />
-              {errors.firstName && (
+              {errors.first_name && (
                 <span className="text-red-500 text-sm mb-2">
-                  {errors.firstName}
+                  {errors.first_name}
                 </span>
               )}
               <Input
-                name="lastName"
+                name="last_name"
                 placeholder="Last name"
-                value={form.lastName}
+                value={form.last_name}
                 onChange={handleChange}
                 required
               />
-              {errors.lastName && (
+              {errors.last_name && (
                 <span className="text-red-500 text-sm mb-2">
-                  {errors.lastName}
+                  {errors.last_name}
                 </span>
               )}
               <Input
@@ -230,8 +256,8 @@ const CreateAccountPage: React.FC = () => {
             >
               <div className="relative mb-4">
                 <select
-                  name="visaType"
-                  value={form.visaType}
+                  name="visa_type"
+                  value={form.visa_type}
                   onChange={handleChange}
                   required
                   className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-sky-300 appearance-none"
@@ -248,21 +274,31 @@ const CreateAccountPage: React.FC = () => {
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                   ▲
                 </span>
-                {errors.visaType && (
+                {errors.visa_type && (
                   <span className="text-red-500 text-sm block mt-2">
-                    {errors.visaType}
+                    {errors.visa_type}
                   </span>
                 )}
               </div>
               <CityAutocomplete
-                value={form.location}
-                onChange={(value) => setForm({ ...form, location: value })}
+                value={`${form.current_location.city}, ${form.current_location.state}`}
+                onChange={(value) => {
+                  const [city, state] = value.split(', ').map((s) => s.trim());
+                  setForm({
+                    ...form,
+                    current_location: {
+                      ...form.current_location,
+                      city: city || '',
+                      state: state || '',
+                    },
+                  });
+                }}
                 placeholder="Location: City, state"
                 required
               />
-              {errors.location && (
+              {errors.current_location && (
                 <span className="text-red-500 text-sm mb-2">
-                  {errors.location}
+                  {errors.current_location}
                 </span>
               )}
               <Input
@@ -272,9 +308,9 @@ const CreateAccountPage: React.FC = () => {
                 onChange={handleChange}
               />
               <Input
-                name="job"
+                name="occupation"
                 placeholder="Current job position (optional)"
-                value={form.job}
+                value={form.occupation}
                 onChange={handleChange}
               />
               <div className="mt-8">

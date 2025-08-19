@@ -1,7 +1,13 @@
 // Environment configuration
 export const config = {
   // API Configuration
-  apiUrl: process.env.REACT_APP_API_URL || 'http://localhost:8080',
+  // In production/staging, use relative URLs since frontend and backend are on same domain
+  // In development, use localhost for the backend server
+  apiUrl:
+    process.env.NODE_ENV === 'production' ||
+    process.env.REACT_APP_STAGING === 'true'
+      ? '' // Empty string means relative URLs
+      : process.env.REACT_APP_API_URL || 'http://localhost:8080',
 
   // Firebase Configuration (if still needed for other features)
   firebase: {

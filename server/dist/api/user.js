@@ -197,23 +197,20 @@ const userApi = (app, adminApp, db, auth) => {
             if (!userDoc.exists) {
                 return res.status(404).json({ error: 'User profile not found.' });
             }
-            // Fetch subcollections
-            const subcollections = [
-                'background_identity',
-                'lifestyle_personality',
-                'travel_exploration',
-                'knowledge_community',
-            ];
+            // Fetch subcollections using collection group query for true batch read
+            const query = db
+                .collectionGroup('profileAnswers')
+                .where('__name__', '>=', `users/${uid}/profileAnswers/`)
+                .where('__name__', '<', `users/${uid}/profileAnswers/\uf8ff`);
+            const querySnapshot = await query.get();
+            // Map results back to profileAnswers object
             const profileAnswers = {};
-            for (const sub of subcollections) {
-                const subDoc = await db
-                    .collection('users')
-                    .doc(uid)
-                    .collection('profileAnswers')
-                    .doc(sub)
-                    .get();
-                profileAnswers[sub] = subDoc.exists ? subDoc.data() : null;
-            }
+            querySnapshot.forEach((doc) => {
+                // Extract the subcollection name from the document path
+                const pathParts = doc.ref.path.split('/');
+                const subcollectionName = pathParts[pathParts.length - 1];
+                profileAnswers[subcollectionName] = doc.data();
+            });
             res.json({ uid, ...userDoc.data(), profileAnswers });
         }
         catch (error) {

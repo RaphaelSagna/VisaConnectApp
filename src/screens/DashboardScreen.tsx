@@ -2,109 +2,37 @@ import React, { useState, useEffect } from 'react';
 import Button from '../components/Button';
 import { useNavigate } from 'react-router-dom';
 import DrawerMenu from '../components/DrawerMenu';
+import { useUserStore } from '../stores/userStore';
 
 const DashboardScreen: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [profile, setProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  // Calculate profile completion percentage
-  const calculateCompletion = (userData: any) => {
-    console.log('userData', userData);
-    if (!userData) return { completed: 0, total: 6, percentage: 0 };
+  // Zustand store
+  const {
+    user,
+    isAuthenticated,
+    isLoading,
+    getFullName,
+    getLocation,
+    getCompletion,
+  } = useUserStore();
 
-    let completed = 0;
-    const total = 6;
+  // Get completion data from store
+  const completion = getCompletion();
 
-    // 1. Basic Info (visa type, location, occupation, employer)
-    if (
-      userData.visa_type &&
-      userData.current_location?.city &&
-      userData.current_location?.state
-    ) {
-      completed++;
-    }
-
-    // 2. Background & Identity
-    if (
-      userData.nationality &&
-      userData.languages?.length > 0 &&
-      userData.other_us_jobs?.length > 0 &&
-      userData.relationship_status
-    ) {
-      completed++;
-    }
-
-    // 3. Lifestyle & Personality
-    if (
-      userData.hobbies?.length > 0 &&
-      userData.favorite_state &&
-      userData.preferred_outings?.length > 0 &&
-      userData.has_car !== undefined &&
-      userData.offers_rides !== undefined
-    ) {
-      completed++;
-    }
-
-    // 4. Travel & Exploration
-    if (
-      userData.road_trips !== undefined &&
-      userData.favorite_place &&
-      userData.travel_tips &&
-      userData.willing_to_guide !== undefined
-    ) {
-      completed++;
-    }
-
-    // 5. Knowledge & Community
-    if (
-      userData.mentorship_interest !== undefined &&
-      userData.job_boards?.length > 0 &&
-      userData.visa_advice
-    ) {
-      completed++;
-    }
-
-    // 6. Profile Answers (wizard data)
-    // if (
-    //   userData.profile_answers &&
-    //   Object.keys(userData.profile_answers).length > 0
-    // ) {
-    //   completed++;
-    // }
-    console.log('completed', completed);
-    const percentage = Math.floor((completed / total) * 100);
-    return { completed, total, percentage };
-  };
-
+  // Initialize store from localStorage on mount
   useEffect(() => {
     const userData = localStorage.getItem('userData');
-    const user = userData ? JSON.parse(userData) : null;
-
-    if (!user) {
-      setError('User not authenticated');
-      setLoading(false);
-      return;
+    if (userData && !user) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        useUserStore.getState().setUser(parsedUser);
+      } catch (error) {
+        console.error('Failed to parse user data from localStorage:', error);
+      }
     }
-
-    // Use localStorage data instead of API call
-    setProfile({
-      firstName: user.first_name || 'User',
-      lastName: user.last_name || '',
-      email: user.email || '',
-      location: user.location || '',
-      visaType: user.visa_type || '',
-      employer: user.employer || '',
-      job: user.job || '',
-      // Calculate completion based on actual user data
-      completion: calculateCompletion(user),
-      // Use actual profile data if available
-      profileAnswers: user.profile_answers || {},
-    });
-    setLoading(false);
-  }, []);
+  }, [user]);
 
   const handleMenuClick = () => setMenuOpen(true);
   const handleOverlayClick = () => setMenuOpen(false);
@@ -147,7 +75,7 @@ const DashboardScreen: React.FC = () => {
           <div className="w-6 md:hidden"></div>
         </div>
       </div>
-      {loading && (
+      {isLoading && (
         <div className="flex-1 flex items-center justify-center">
           <svg
             className="animate-spin h-10 w-10 text-sky-500"
@@ -171,12 +99,7 @@ const DashboardScreen: React.FC = () => {
           </svg>
         </div>
       )}
-      {error && !loading && (
-        <div className="flex-1 flex items-center justify-center text-red-500 font-semibold">
-          {error}
-        </div>
-      )}
-      {!loading && !error && profile && (
+      {!isLoading && user && (
         <div className="flex-1 px-4 md:px-6 py-4 md:py-8 max-w-4xl mx-auto">
           {/* Your Dashboard Title */}
           <div className="text-center mb-6 md:mb-8">
@@ -203,15 +126,14 @@ const DashboardScreen: React.FC = () => {
             <div className="flex items-center gap-2 mb-4">
               <span className="text-blue-500 text-base md:text-lg">✓</span>
               <span className="text-gray-700 text-sm md:text-base">
-                {profile.completion?.completed || 0} out of{' '}
-                {profile.completion?.total || 6} completed
+                {completion.completed} out of {completion.total} completed
               </span>
             </div>
-            {profile.completion?.percentage > 0 && (
+            {completion.percentage > 0 && (
               <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
                 <div
                   className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${profile.completion.percentage}%` }}
+                  style={{ width: `${completion.percentage}%` }}
                 ></div>
               </div>
             )}
@@ -221,9 +143,9 @@ const DashboardScreen: React.FC = () => {
                 className="w-full md:w-auto px-6 md:px-8 py-2 md:py-3 text-base md:text-lg"
                 onClick={() => navigate('/background')}
               >
-                {profile.completion?.completed === 0
+                {completion.completed === 0
                   ? 'Start questionnaire'
-                  : profile.completion?.completed === profile.completion?.total
+                  : completion.completed === completion.total
                   ? 'View profile'
                   : 'Continue questionnaire'}
               </Button>

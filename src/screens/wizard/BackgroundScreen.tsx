@@ -1,10 +1,11 @@
-import React, { useState, Fragment } from 'react';
+import React, { useState, Fragment, useEffect } from 'react';
 import Button from '../../components/Button';
 import { useNavigate } from 'react-router-dom';
 import { Listbox, Transition, Combobox } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import countries from 'world-countries';
 import { apiPatch } from '../../api';
+import { useUserStore } from '../../stores/userStore';
 
 const countryNames = countries.map((c) => c.name.common).sort();
 // Extract and deduplicate all languages from world-countries
@@ -49,6 +50,9 @@ const BackgroundScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
 
+  // Zustand store
+  const { user, updateUser } = useUserStore();
+
   const filteredCountries =
     query === ''
       ? countryNames
@@ -65,6 +69,26 @@ const BackgroundScreen: React.FC = () => {
             !form.languages.includes(l)
         );
 
+  // Pre-populate form with existing user data
+  useEffect(() => {
+    if (user) {
+      setForm({
+        nationality: user.nationality || '',
+        languages: user.languages || [],
+        workHistory: user.other_us_jobs?.join(', ') || '',
+        relationshipStatus: user.relationship_status || '',
+        stayInUS: 'yes', // Default value, could be stored in profile_answers
+      });
+    }
+  }, [user]);
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!user?.uid) {
+      navigate('/sign-in');
+    }
+  }, [user, navigate]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -77,13 +101,10 @@ const BackgroundScreen: React.FC = () => {
     setLoading(true);
     setApiError('');
     try {
-      const userData = localStorage.getItem('userData');
-      const user = userData ? JSON.parse(userData) : null;
-      const uid = user?.uid;
-      if (!uid) throw new Error('User not authenticated');
+      if (!user?.uid) throw new Error('User not authenticated');
 
       // Update user profile with background information
-      await apiPatch('/api/user/profile', {
+      const updateData = {
         nationality: form.nationality,
         languages: form.languages,
         other_us_jobs: form.workHistory ? [form.workHistory] : [],
@@ -98,7 +119,12 @@ const BackgroundScreen: React.FC = () => {
             stayInUS: form.stayInUS,
           },
         },
-      });
+      };
+
+      await apiPatch('/api/user/profile', updateData);
+
+      // Update local store with new data
+      updateUser(updateData);
 
       setLoading(false);
       navigate('/lifestyle');
@@ -110,6 +136,7 @@ const BackgroundScreen: React.FC = () => {
 
   return (
     <div className=" bg-gray-50 flex flex-col items-center pb-4">
+      {/* Loading state for form submission */}
       {loading && (
         <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-center justify-center">
           <svg
@@ -134,341 +161,360 @@ const BackgroundScreen: React.FC = () => {
           </svg>
         </div>
       )}
-      <div className="w-full max-w-md flex flex-col items-center">
-        {/* Header */}
-        <div className="w-full bg-yellow-100 rounded-b-3xl flex flex-col items-center py-6 mb-6 relative">
-          <h1 className="text-xl font-bold text-gray-900 mb-2 text-center px-4">
-            Let's learn about you so we can get you connected
-          </h1>
-          {/* Handshake icon */}
-          <div className="text-4xl mb-2">🤝</div>
-          {/* Progress dots */}
-          <div className="flex gap-1 mb-2">
-            <span className="w-2 h-2 bg-gray-400 rounded-full inline-block" />
-            <span className="w-2 h-2 bg-gray-800 rounded-full inline-block" />{' '}
-            {/* Current step */}
-            <span className="w-2 h-2 bg-gray-400 rounded-full inline-block" />
-            <span className="w-2 h-2 bg-gray-400 rounded-full inline-block" />
-            <span className="w-2 h-2 bg-gray-400 rounded-full inline-block" />
+
+      {/* Loading state for user data */}
+      {!user && (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading your profile...</p>
           </div>
         </div>
+      )}
 
-        {/* Form Fields */}
-        <div className="w-full flex flex-col px-4">
-          <div className="mb-4">
-            <label className="block text-gray-800 font-medium mb-2">
-              What is your nationality?
-            </label>
-            <Combobox
-              value={form.nationality}
-              onChange={(val: string) => setForm({ ...form, nationality: val })}
-            >
-              <div className="relative">
-                <Combobox.Input
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-sky-300 mb-4"
-                  displayValue={(val: string) => val}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setQuery(e.target.value)
-                  }
-                  placeholder="Enter your nationality"
-                />
-                <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-3">
-                  <ChevronUpDownIcon
-                    className="h-5 w-5 text-gray-400"
-                    aria-hidden="true"
-                  />
-                </Combobox.Button>
-                <Transition
-                  as={Fragment}
-                  leave="transition ease-in duration-100"
-                  leaveFrom="opacity-100"
-                  leaveTo="opacity-0"
-                >
-                  <Combobox.Options className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-xl py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none">
-                    {filteredCountries.length === 0 && query !== '' ? (
-                      <div className="cursor-default select-none py-3 px-4 text-gray-700">
-                        No results found.
-                      </div>
-                    ) : (
-                      filteredCountries.map((name) => (
-                        <Combobox.Option
-                          key={name}
-                          value={name}
-                          className={({ active }: { active: boolean }) =>
-                            `cursor-pointer select-none relative py-3 px-4 ${
-                              active
-                                ? 'bg-sky-100 text-sky-900'
-                                : 'text-gray-900'
-                            }`
-                          }
-                        >
-                          {({ selected }: { selected: boolean }) => (
-                            <>
-                              <span
-                                className={`block truncate ${
-                                  selected ? 'font-semibold' : 'font-normal'
-                                }`}
-                              >
-                                {name}
-                              </span>
-                              {selected ? (
-                                <span className="absolute inset-y-0 right-4 flex items-center text-sky-600">
-                                  <CheckIcon
-                                    className="h-5 w-5"
-                                    aria-hidden="true"
-                                  />
-                                </span>
-                              ) : null}
-                            </>
-                          )}
-                        </Combobox.Option>
-                      ))
-                    )}
-                  </Combobox.Options>
-                </Transition>
-              </div>
-            </Combobox>
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-gray-800 font-medium mb-2">
-              What languages do you speak?
-            </label>
-            <Combobox
-              value={form.languages}
-              onChange={(vals: string[]) => {
-                setForm({ ...form, languages: vals });
-                setLangQuery('');
-                // Also clear the Combobox input value
-                const input = document.querySelector<HTMLInputElement>(
-                  'input[placeholder="Enter languages you speak"]'
-                );
-                if (input) input.value = '';
-                setLangOpen(false);
-              }}
-              multiple
-              as={React.Fragment}
-              open={langOpen}
-              onOpenChange={setLangOpen}
-            >
-              <div className="relative">
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {form.languages.map((lang) => (
-                    <span
-                      key={lang}
-                      className="inline-flex items-center bg-sky-100 text-sky-800 rounded-full px-3 py-1 text-sm font-medium"
-                    >
-                      {lang}
-                      <button
-                        type="button"
-                        className="ml-2 text-sky-400 hover:text-sky-700 focus:outline-none"
-                        onClick={() =>
-                          setForm({
-                            ...form,
-                            languages: form.languages.filter((l) => l !== lang),
-                          })
-                        }
-                        aria-label={`Remove ${lang}`}
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-                <Combobox.Input
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-sky-300 mb-4"
-                  displayValue={() => ''}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setLangQuery(e.target.value);
-                    setLangOpen(true);
-                  }}
-                  placeholder="Enter languages you speak"
-                />
-                <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-3">
-                  <ChevronUpDownIcon
-                    className="h-5 w-5 text-gray-400"
-                    aria-hidden="true"
-                  />
-                </Combobox.Button>
-                <Transition
-                  as={Fragment}
-                  leave="transition ease-in duration-100"
-                  leaveFrom="opacity-100"
-                  leaveTo="opacity-0"
-                >
-                  <Combobox.Options className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-xl py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none">
-                    {filteredLanguages.length === 0 && langQuery !== '' ? (
-                      <div className="cursor-default select-none py-3 px-4 text-gray-700">
-                        No results found.
-                      </div>
-                    ) : (
-                      filteredLanguages.map((l) => (
-                        <Combobox.Option
-                          key={l}
-                          value={l}
-                          className={({ active }: { active: boolean }) =>
-                            `cursor-pointer select-none relative py-3 px-4 ${
-                              active
-                                ? 'bg-sky-100 text-sky-900'
-                                : 'text-gray-900'
-                            }`
-                          }
-                        >
-                          {({ selected }: { selected: boolean }) => (
-                            <>
-                              <span
-                                className={`block truncate ${
-                                  selected ? 'font-semibold' : 'font-normal'
-                                }`}
-                              >
-                                {l}
-                              </span>
-                              {selected ? (
-                                <span className="absolute inset-y-0 right-4 flex items-center text-sky-600">
-                                  <CheckIcon
-                                    className="h-5 w-5"
-                                    aria-hidden="true"
-                                  />
-                                </span>
-                              ) : null}
-                            </>
-                          )}
-                        </Combobox.Option>
-                      ))
-                    )}
-                  </Combobox.Options>
-                </Transition>
-              </div>
-            </Combobox>
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-gray-800 font-medium mb-2">
-              Where else have you worked in the USA?
-            </label>
-            <Input
-              name="workHistory"
-              placeholder="Enter your work history"
-              value={form.workHistory}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-gray-800 font-medium mb-2">
-              What is your relationship status?
-            </label>
-            <Listbox
-              value={form.relationshipStatus}
-              onChange={(val: string) =>
-                setForm({ ...form, relationshipStatus: val })
-              }
-            >
-              <div className="relative">
-                <Listbox.Button className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 shadow-sm text-base text-left focus:outline-none focus:ring-2 focus:ring-sky-300 mb-4 flex items-center justify-between">
-                  <span>
-                    {relationshipOptions.find(
-                      (o) => o.value === form.relationshipStatus
-                    )?.label || 'Select status'}
-                  </span>
-                  <ChevronUpDownIcon
-                    className="h-5 w-5 text-gray-400 ml-2"
-                    aria-hidden="true"
-                  />
-                </Listbox.Button>
-                <Transition
-                  as={Fragment}
-                  leave="transition ease-in duration-100"
-                  leaveFrom="opacity-100"
-                  leaveTo="opacity-0"
-                >
-                  <Listbox.Options className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-xl py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none">
-                    {relationshipOptions.map((option) => (
-                      <Listbox.Option
-                        key={option.value}
-                        value={option.value}
-                        className={({ active }: { active: boolean }) =>
-                          `cursor-pointer select-none relative py-3 px-4 ${
-                            active ? 'bg-sky-100 text-sky-900' : 'text-gray-900'
-                          }`
-                        }
-                      >
-                        {({ selected }: { selected: boolean }) => (
-                          <>
-                            <span
-                              className={`block truncate ${
-                                selected ? 'font-semibold' : 'font-normal'
-                              }`}
-                            >
-                              {option.label}
-                            </span>
-                            {selected ? (
-                              <span className="absolute inset-y-0 right-4 flex items-center text-sky-600">
-                                <CheckIcon
-                                  className="h-5 w-5"
-                                  aria-hidden="true"
-                                />
-                              </span>
-                            ) : null}
-                          </>
-                        )}
-                      </Listbox.Option>
-                    ))}
-                  </Listbox.Options>
-                </Transition>
-              </div>
-            </Listbox>
-          </div>
-
-          <div className="mb-6">
-            <label className="block text-gray-800 font-medium mb-2">
-              Do you plan to stay in the U.S. long-term or return to your
-              country?
-            </label>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                className={`px-6 py-3 rounded-full font-semibold text-white ${
-                  form.stayInUS === 'yes' ? 'bg-sky-400' : 'bg-sky-200'
-                } focus:outline-none`}
-                onClick={() => handleStayInUSChange('yes')}
-              >
-                Yes
-              </button>
-              <button
-                type="button"
-                className={`px-6 py-3 rounded-full font-semibold border-2 ${
-                  form.stayInUS === 'no'
-                    ? 'border-sky-400 text-sky-400'
-                    : 'border-gray-300 text-gray-800'
-                } bg-white focus:outline-none`}
-                onClick={() => handleStayInUSChange('no')}
-              >
-                No
-              </button>
+      {user && (
+        <div className="w-full max-w-md flex flex-col items-center">
+          {/* Header */}
+          <div className="w-full bg-yellow-100 rounded-b-3xl flex flex-col items-center py-6 mb-6 relative">
+            <h1 className="text-xl font-bold text-gray-900 mb-2 text-center px-4">
+              Let's learn about you so we can get you connected
+            </h1>
+            {/* Handshake icon */}
+            <div className="text-4xl mb-2">🤝</div>
+            {/* Progress dots */}
+            <div className="flex gap-1 mb-2">
+              <span className="w-2 h-2 bg-gray-400 rounded-full inline-block" />
+              <span className="w-2 h-2 bg-gray-800 rounded-full inline-block" />{' '}
+              {/* Current step */}
+              <span className="w-2 h-2 bg-gray-400 rounded-full inline-block" />
+              <span className="w-2 h-2 bg-gray-400 rounded-full inline-block" />
+              <span className="w-2 h-2 bg-gray-400 rounded-full inline-block" />
             </div>
           </div>
-        </div>
 
-        {/* Continue button */}
-        <Button
-          variant="primary"
-          className="w-full max-w-md mb-2 mx-4"
-          onClick={handleContinue}
-          disabled={loading}
-        >
-          Save & Continue
-        </Button>
-        {apiError && (
-          <div className="text-red-500 text-center mt-2">{apiError}</div>
-        )}
-        <button
-          className="text-gray-500 underline text-base mt-2"
-          onClick={() => navigate('/dashboard')}
-        >
-          Skip and finish later
-        </button>
-      </div>
+          {/* Form Fields */}
+          <div className="w-full flex flex-col px-4">
+            <div className="mb-4">
+              <label className="block text-gray-800 font-medium mb-2">
+                What is your nationality?
+              </label>
+              <Combobox
+                value={form.nationality}
+                onChange={(val: string) =>
+                  setForm({ ...form, nationality: val })
+                }
+              >
+                <div className="relative">
+                  <Combobox.Input
+                    className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-sky-300 mb-4"
+                    displayValue={(val: string) => val}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setQuery(e.target.value)
+                    }
+                    placeholder="Enter your nationality"
+                  />
+                  <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <ChevronUpDownIcon
+                      className="h-5 w-5 text-gray-400"
+                      aria-hidden="true"
+                    />
+                  </Combobox.Button>
+                  <Transition
+                    as={Fragment}
+                    leave="transition ease-in duration-100"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                  >
+                    <Combobox.Options className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-xl py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none">
+                      {filteredCountries.length === 0 && query !== '' ? (
+                        <div className="cursor-default select-none py-3 px-4 text-gray-700">
+                          No results found.
+                        </div>
+                      ) : (
+                        filteredCountries.map((name) => (
+                          <Combobox.Option
+                            key={name}
+                            value={name}
+                            className={({ active }: { active: boolean }) =>
+                              `cursor-pointer select-none relative py-3 px-4 ${
+                                active
+                                  ? 'bg-sky-100 text-sky-900'
+                                  : 'text-gray-900'
+                              }`
+                            }
+                          >
+                            {({ selected }: { selected: boolean }) => (
+                              <>
+                                <span
+                                  className={`block truncate ${
+                                    selected ? 'font-semibold' : 'font-normal'
+                                  }`}
+                                >
+                                  {name}
+                                </span>
+                                {selected ? (
+                                  <span className="absolute inset-y-0 right-4 flex items-center text-sky-600">
+                                    <CheckIcon
+                                      className="h-5 w-5"
+                                      aria-hidden="true"
+                                    />
+                                  </span>
+                                ) : null}
+                              </>
+                            )}
+                          </Combobox.Option>
+                        ))
+                      )}
+                    </Combobox.Options>
+                  </Transition>
+                </div>
+              </Combobox>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-gray-800 font-medium mb-2">
+                What languages do you speak?
+              </label>
+              <Combobox
+                value={form.languages}
+                onChange={(vals: string[]) => {
+                  setForm({ ...form, languages: vals });
+                  setLangQuery('');
+                  // Also clear the Combobox input value
+                  const input = document.querySelector<HTMLInputElement>(
+                    'input[placeholder="Enter languages you speak"]'
+                  );
+                  if (input) input.value = '';
+                  setLangOpen(false);
+                }}
+                multiple
+                as={React.Fragment}
+                open={langOpen}
+                onOpenChange={setLangOpen}
+              >
+                <div className="relative">
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {form.languages.map((lang) => (
+                      <span
+                        key={lang}
+                        className="inline-flex items-center bg-sky-100 text-sky-800 rounded-full px-3 py-1 text-sm font-medium"
+                      >
+                        {lang}
+                        <button
+                          type="button"
+                          className="ml-2 text-sky-400 hover:text-sky-700 focus:outline-none"
+                          onClick={() =>
+                            setForm({
+                              ...form,
+                              languages: form.languages.filter(
+                                (l) => l !== lang
+                              ),
+                            })
+                          }
+                          aria-label={`Remove ${lang}`}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <Combobox.Input
+                    className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-sky-300 mb-4"
+                    displayValue={() => ''}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      setLangQuery(e.target.value);
+                      setLangOpen(true);
+                    }}
+                    placeholder="Enter languages you speak"
+                  />
+                  <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <ChevronUpDownIcon
+                      className="h-5 w-5 text-gray-400"
+                      aria-hidden="true"
+                    />
+                  </Combobox.Button>
+                  <Transition
+                    as={Fragment}
+                    leave="transition ease-in duration-100"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                  >
+                    <Combobox.Options className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-xl py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none">
+                      {filteredLanguages.length === 0 && langQuery !== '' ? (
+                        <div className="cursor-default select-none py-3 px-4 text-gray-700">
+                          No results found.
+                        </div>
+                      ) : (
+                        filteredLanguages.map((l) => (
+                          <Combobox.Option
+                            key={l}
+                            value={l}
+                            className={({ active }: { active: boolean }) =>
+                              `cursor-pointer select-none relative py-3 px-4 ${
+                                active
+                                  ? 'bg-sky-100 text-sky-900'
+                                  : 'text-gray-900'
+                              }`
+                            }
+                          >
+                            {({ selected }: { selected: boolean }) => (
+                              <>
+                                <span
+                                  className={`block truncate ${
+                                    selected ? 'font-semibold' : 'font-normal'
+                                  }`}
+                                >
+                                  {l}
+                                </span>
+                                {selected ? (
+                                  <span className="absolute inset-y-0 right-4 flex items-center text-sky-600">
+                                    <CheckIcon
+                                      className="h-5 w-5"
+                                      aria-hidden="true"
+                                    />
+                                  </span>
+                                ) : null}
+                              </>
+                            )}
+                          </Combobox.Option>
+                        ))
+                      )}
+                    </Combobox.Options>
+                  </Transition>
+                </div>
+              </Combobox>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-gray-800 font-medium mb-2">
+                Where else have you worked in the USA?
+              </label>
+              <Input
+                name="workHistory"
+                placeholder="Enter your work history"
+                value={form.workHistory}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-gray-800 font-medium mb-2">
+                What is your relationship status?
+              </label>
+              <Listbox
+                value={form.relationshipStatus}
+                onChange={(val: string) =>
+                  setForm({ ...form, relationshipStatus: val })
+                }
+              >
+                <div className="relative">
+                  <Listbox.Button className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 shadow-sm text-base text-left focus:outline-none focus:ring-2 focus:ring-sky-300 mb-4 flex items-center justify-between">
+                    <span>
+                      {relationshipOptions.find(
+                        (o) => o.value === form.relationshipStatus
+                      )?.label || 'Select status'}
+                    </span>
+                    <ChevronUpDownIcon
+                      className="h-5 w-5 text-gray-400 ml-2"
+                      aria-hidden="true"
+                    />
+                  </Listbox.Button>
+                  <Transition
+                    as={Fragment}
+                    leave="transition ease-in duration-100"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                  >
+                    <Listbox.Options className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-xl py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none">
+                      {relationshipOptions.map((option) => (
+                        <Listbox.Option
+                          key={option.value}
+                          value={option.value}
+                          className={({ active }: { active: boolean }) =>
+                            `cursor-pointer select-none relative py-3 px-4 ${
+                              active
+                                ? 'bg-sky-100 text-sky-900'
+                                : 'text-gray-900'
+                            }`
+                          }
+                        >
+                          {({ selected }: { selected: boolean }) => (
+                            <>
+                              <span
+                                className={`block truncate ${
+                                  selected ? 'font-semibold' : 'font-normal'
+                                }`}
+                              >
+                                {option.label}
+                              </span>
+                              {selected ? (
+                                <span className="absolute inset-y-0 right-4 flex items-center text-sky-600">
+                                  <CheckIcon
+                                    className="h-5 w-5"
+                                    aria-hidden="true"
+                                  />
+                                </span>
+                              ) : null}
+                            </>
+                          )}
+                        </Listbox.Option>
+                      ))}
+                    </Listbox.Options>
+                  </Transition>
+                </div>
+              </Listbox>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-gray-800 font-medium mb-2">
+                Do you plan to stay in the U.S. long-term or return to your
+                country?
+              </label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  className={`px-6 py-3 rounded-full font-semibold text-white ${
+                    form.stayInUS === 'yes' ? 'bg-sky-400' : 'bg-sky-200'
+                  } focus:outline-none`}
+                  onClick={() => handleStayInUSChange('yes')}
+                >
+                  Yes
+                </button>
+                <button
+                  type="button"
+                  className={`px-6 py-3 rounded-full font-semibold border-2 ${
+                    form.stayInUS === 'no'
+                      ? 'border-sky-400 text-sky-400'
+                      : 'border-gray-300 text-gray-800'
+                  } bg-white focus:outline-none`}
+                  onClick={() => handleStayInUSChange('no')}
+                >
+                  No
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Continue button */}
+          <Button
+            variant="primary"
+            className="w-full max-w-md mb-2 mx-4"
+            onClick={handleContinue}
+            disabled={loading}
+          >
+            Save & Continue
+          </Button>
+          {apiError && (
+            <div className="text-red-500 text-center mt-2">{apiError}</div>
+          )}
+          <button
+            className="text-gray-500 underline text-base mt-2"
+            onClick={() => navigate('/dashboard')}
+          >
+            Skip and finish later
+          </button>
+        </div>
+      )}
     </div>
   );
 };

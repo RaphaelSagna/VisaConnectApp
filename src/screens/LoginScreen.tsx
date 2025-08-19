@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Button from '../components/Button';
 import { useNavigate } from 'react-router-dom';
 import { apiPostPublic } from '../api';
+import { useUserStore } from '../stores/userStore';
 import logo from '../assets/images/logo.png';
 
 // Types for login response
@@ -63,6 +64,9 @@ const SignInScreen: React.FC = () => {
   const [apiError, setApiError] = useState('');
   const navigate = useNavigate();
 
+  // Zustand store
+  const { setUser, setLoading } = useUserStore();
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setErrors({ ...errors, [e.target.name]: '' });
@@ -100,38 +104,38 @@ const SignInScreen: React.FC = () => {
       console.log('Login response:', loginResponse); // Debug log
 
       if (loginResponse.data) {
-        // Store user data from backend response
-        localStorage.setItem(
-          'userData',
-          JSON.stringify({
-            uid: loginResponse.data.id,
-            email: loginResponse.data.email,
-            first_name: loginResponse.data.first_name || '',
-            last_name: loginResponse.data.last_name || '',
-            visa_type: loginResponse.data.visa_type || '',
-            current_location: loginResponse.data.current_location || {},
-            occupation: loginResponse.data.occupation || '',
-            employer: loginResponse.data.employer || '',
-            // Include all profile fields for completion calculation
-            nationality: loginResponse.data.nationality,
-            languages: loginResponse.data.languages || [],
-            other_us_jobs: loginResponse.data.other_us_jobs || [],
-            relationship_status: loginResponse.data.relationship_status,
-            hobbies: loginResponse.data.hobbies || [],
-            favorite_state: loginResponse.data.favorite_state,
-            preferred_outings: loginResponse.data.preferred_outings || [],
-            has_car: loginResponse.data.has_car,
-            offers_rides: loginResponse.data.offers_rides,
-            road_trips: loginResponse.data.road_trips,
-            favorite_place: loginResponse.data.favorite_place,
-            travel_tips: loginResponse.data.travel_tips,
-            willing_to_guide: loginResponse.data.willing_to_guide,
-            mentorship_interest: loginResponse.data.mentorship_interest,
-            job_boards: loginResponse.data.job_boards || [],
-            visa_advice: loginResponse.data.visa_advice,
-            profile_answers: loginResponse.data.profile_answers || {},
-          })
-        );
+        // Create user data object
+        const userData = {
+          uid: loginResponse.data.id,
+          email: loginResponse.data.email,
+          first_name: loginResponse.data.first_name || '',
+          last_name: loginResponse.data.last_name || '',
+          visa_type: loginResponse.data.visa_type || '',
+          current_location: loginResponse.data.current_location || {},
+          occupation: loginResponse.data.occupation || '',
+          employer: loginResponse.data.employer || '',
+          // Include all profile fields for completion calculation
+          nationality: loginResponse.data.nationality,
+          languages: loginResponse.data.languages || [],
+          other_us_jobs: loginResponse.data.other_us_jobs || [],
+          relationship_status: loginResponse.data.relationship_status,
+          hobbies: loginResponse.data.hobbies || [],
+          favorite_state: loginResponse.data.favorite_state,
+          preferred_outings: loginResponse.data.preferred_outings || [],
+          has_car: loginResponse.data.has_car,
+          offers_rides: loginResponse.data.offers_rides,
+          road_trips: loginResponse.data.road_trips,
+          favorite_place: loginResponse.data.favorite_place,
+          travel_tips: loginResponse.data.travel_tips,
+          willing_to_guide: loginResponse.data.willing_to_guide,
+          mentorship_interest: loginResponse.data.mentorship_interest,
+          job_boards: loginResponse.data.job_boards || [],
+          visa_advice: loginResponse.data.visa_advice,
+          profile_answers: loginResponse.data.profile_answers || {},
+        };
+
+        // Store in Zustand store (this also updates localStorage for backward compatibility)
+        setUser(userData);
 
         // Navigate to dashboard
         navigate('/dashboard');

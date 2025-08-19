@@ -1,6 +1,6 @@
 /* eslint-disable */
 // Service Worker - JavaScript file (not TypeScript)
-const CACHE_NAME = 'visa-connect-v3';
+const CACHE_NAME = 'visa-connect-v4';
 const urlsToCache = [
   '/',
   '/manifest.json',
@@ -21,16 +21,27 @@ self.addEventListener('install', (event) => {
 
 // Fetch event - serve from cache when offline
 self.addEventListener('fetch', (event) => {
-  // Skip caching for JavaScript and CSS files to prevent stale cache issues
+  // For JavaScript and CSS files, always fetch from network first
   if (
     event.request.url.includes('/static/js/') ||
     event.request.url.includes('/static/css/')
   ) {
     event.respondWith(
-      fetch(event.request).catch(() => {
-        // Only fall back to cache if network fails
-        return caches.match(event.request);
-      })
+      fetch(event.request)
+        .then((response) => {
+          // If the response is HTML (404 page), don't cache it
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('text/html')) {
+            // This is a 404, return a proper error
+            throw new Error('Resource not found');
+          }
+          return response;
+        })
+        .catch(() => {
+          // If network fails, don't fall back to cache for JS/CSS
+          // This prevents serving old cached versions
+          return new Response('', { status: 404 });
+        })
     );
     return;
   }
@@ -57,10 +68,9 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
+          // Delete ALL old caches to force fresh start
+          console.log('Deleting cache:', cacheName);
+          return caches.delete(cacheName);
         })
       );
     })

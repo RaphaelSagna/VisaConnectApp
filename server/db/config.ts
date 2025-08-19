@@ -18,10 +18,10 @@ if (process.env.DATABASE_URL) {
 } else {
   // Development: Use local environment variables
   dbConfig = {
-    user: process.env.DB_USER || 'arronlinton',
-    host: process.env.DB_HOST || 'localhost',
-    database: process.env.DB_NAME || 'visaconnect',
-    password: process.env.DB_PASSWORD || '',
+    user: process.env.DB_USER,
+    host: process.env.DB_HOST,
+    database: process.env.DB_NAME,
+    password: process.env.DB_PASSWORD,
     port: parseInt(process.env.DB_PORT || '5431'),
     // Connection pool settings
     max: 20, // Maximum number of clients in the pool

@@ -21,10 +21,16 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
   try {
     // Try to load from the dist folder first (production build)
     try {
-      serviceAccount = require(path.join(__dirname, 'firebaseServiceAccount.json'));
+      serviceAccount = require(path.join(
+        __dirname,
+        'firebaseServiceAccount.json'
+      ));
     } catch (distError) {
       // Fallback to project root (development)
-      serviceAccount = require(path.join(__dirname, '../firebaseServiceAccount.json'));
+      serviceAccount = require(path.join(
+        __dirname,
+        '../firebaseServiceAccount.json'
+      ));
     }
   } catch (error) {
     console.error(

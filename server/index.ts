@@ -1,10 +1,10 @@
-import express, { Express, Request, Response } from 'express';
 import path from 'path';
+import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import admin from 'firebase-admin';
 import { ServiceAccount } from 'firebase-admin';
-import { Firestore } from 'firebase-admin/firestore';
-import { Auth } from 'firebase-admin/auth';
+import { config } from './config/env';
+
 // Database connection
 import pool from './db/config';
 // Register API routes
@@ -14,27 +14,28 @@ import authApi from './api/auth';
 let serviceAccount: ServiceAccount;
 
 if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-  // Production: Use environment variable
-  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-} else {
-  // Development: Use local file
+  // Staging/Production: Use environment variable
   try {
-    // Try to load from the dist folder first (production build)
-    try {
-      serviceAccount = require(path.join(
-        __dirname,
-        'firebaseServiceAccount.json'
-      ));
-    } catch (distError) {
-      // Fallback to project root (development)
-      serviceAccount = require(path.join(
-        __dirname,
-        '../firebaseServiceAccount.json'
-      ));
-    }
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    console.log('✅ Using Firebase service account from environment variable');
+  } catch (error: any) {
+    console.error(
+      '❌ Failed to parse FIREBASE_SERVICE_ACCOUNT environment variable:',
+      error.message
+    );
+    process.exit(1);
+  }
+} else {
+  // Local Development: Use local file
+  try {
+    serviceAccount = require(path.join(
+      __dirname,
+      './firebaseServiceAccount.json'
+    ));
+    console.log('✅ Using Firebase service account from local file');
   } catch (error) {
     console.error(
-      'Firebase service account not found. Please set FIREBASE_SERVICE_ACCOUNT environment variable or add firebaseServiceAccount.json'
+      '❌ Firebase service account not found. Please set FIREBASE_SERVICE_ACCOUNT environment variable or add firebaseServiceAccount.json'
     );
     process.exit(1);
   }

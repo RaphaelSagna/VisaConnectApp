@@ -1,12 +1,12 @@
 import { Pool, PoolConfig } from 'pg';
+import { config } from '../config/env';
 
 // Database configuration
 let dbConfig: PoolConfig;
-
-if (process.env.DATABASE_URL) {
+if (config.database.url) {
   // Production: Use Heroku DATABASE_URL
   dbConfig = {
-    connectionString: process.env.DATABASE_URL,
+    connectionString: config.database.url,
     ssl: {
       rejectUnauthorized: false, // Required for Heroku
     },
@@ -18,11 +18,11 @@ if (process.env.DATABASE_URL) {
 } else {
   // Development: Use local environment variables
   dbConfig = {
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    password: process.env.DB_PASSWORD,
-    port: parseInt(process.env.DB_PORT || '5431'),
+    user: config.database.user,
+    host: config.database.host,
+    database: config.database.database,
+    password: config.database.password,
+    port: config.database.port,
     // Connection pool settings
     max: 20, // Maximum number of clients in the pool
     idleTimeoutMillis: 30000, // Close idle clients after 30 seconds

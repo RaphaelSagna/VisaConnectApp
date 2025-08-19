@@ -187,26 +187,27 @@ const DashboardScreen: React.FC = () => {
 
           {/* Work Portal Card */}
           <div className="bg-amber-50 rounded-xl p-4 md:p-6 shadow-sm mb-4 md:mb-6 relative">
-            <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-start md:gap-0">
-              <div className="flex-1">
-                <h3 className="font-bold text-lg md:text-xl text-gray-900 mb-3 md:mb-4">
-                  Work Portal
-                </h3>
-                <ul className="text-gray-700 space-y-1 md:space-y-2 text-sm md:text-base">
-                  <li>• Job discovery</li>
-                  <li>• Company reviews</li>
-                  <li>• User tips</li>
-                  <li>• Professional grow</li>
-                </ul>
-              </div>
-              <Button
-                variant="primary"
-                size="sm"
-                className="w-full md:w-auto md:ml-6"
-              >
-                Explore
-              </Button>
+            {/* Explore Button - Top Right */}
+            <Button
+              variant="primary"
+              size="sm"
+              className="absolute top-3 right-3 md:top-4 md:right-4 text-sm md:text-base px-4 md:px-6 py-2 md:py-3"
+            >
+              Explore
+            </Button>
+
+            <div className="flex-1">
+              <h3 className="font-bold text-lg md:text-xl text-gray-900 mb-3 md:mb-4">
+                Work Portal
+              </h3>
+              <ul className="text-gray-700 space-y-1 md:space-y-2 text-sm md:text-base">
+                <li>• Job discovery</li>
+                <li>• Company reviews</li>
+                <li>• User tips</li>
+                <li>• Professional grow</li>
+              </ul>
             </div>
+
             {/* Mobile Illustration Placeholder */}
             <div className="hidden md:block absolute top-4 right-4 text-2xl opacity-20">
               🌙☁️💤⭐
@@ -215,26 +216,27 @@ const DashboardScreen: React.FC = () => {
 
           {/* Social Portal Card */}
           <div className="bg-green-50 rounded-xl p-4 md:p-6 shadow-sm relative">
-            <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-start md:gap-0">
-              <div className="flex-1">
-                <h3 className="font-bold text-lg md:text-xl text-gray-900 mb-3 md:mb-4">
-                  Social Portal
-                </h3>
-                <ul className="text-gray-700 space-y-1 md:space-y-2 text-sm md:text-base">
-                  <li>• Cultural exchange</li>
-                  <li>• Event planning</li>
-                  <li>• Weekend meetups</li>
-                  <li>• Trips, tips and advice</li>
-                </ul>
-              </div>
-              <Button
-                variant="primary"
-                size="sm"
-                className="w-full md:w-auto md:ml-6"
-              >
-                Explore
-              </Button>
+            {/* Explore Button - Top Right */}
+            <Button
+              variant="primary"
+              size="sm"
+              className="absolute top-3 right-3 md:top-4 md:right-4 text-sm md:text-base px-4 md:px-6 py-2 md:py-3"
+            >
+              Explore
+            </Button>
+
+            <div className="flex-1">
+              <h3 className="font-bold text-lg md:text-xl text-gray-900 mb-3 md:mb-4">
+                Social Portal
+              </h3>
+              <ul className="text-gray-700 space-y-1 md:space-y-2 text-sm md:text-base">
+                <li>• Cultural exchange</li>
+                <li>• Event planning</li>
+                <li>• Weekend meetups</li>
+                <li>• Trips, tips and advice</li>
+              </ul>
             </div>
+
             {/* Mobile Illustration Placeholder */}
             <div className="hidden md:block absolute top-4 right-4 text-2xl opacity-20">
               🌙☁️💤⭐

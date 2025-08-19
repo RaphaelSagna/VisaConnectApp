@@ -88,7 +88,7 @@ app.get('/api/health', async (req: Request, res: Response) => {
 authApi(app);
 
 // Only serve static files in production
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV !== 'development') {
   // Serve static files from the React app build FIRST
   const buildPath = path.join(__dirname, '../../build');
   console.log('Serving static files from:', buildPath);

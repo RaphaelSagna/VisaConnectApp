@@ -22,11 +22,11 @@ const DashboardScreen: React.FC = () => {
 
     // Use localStorage data instead of API call
     setProfile({
-      firstName: user.firstName || 'User',
-      lastName: user.lastName || '',
+      firstName: user.first_name || 'User',
+      lastName: user.last_name || '',
       email: user.email || '',
       location: user.location || '',
-      visaType: user.visaType || '',
+      visaType: user.visa_type || '',
       employer: user.employer || '',
       job: user.job || '',
       // Mock profile answers for now
@@ -118,10 +118,16 @@ const DashboardScreen: React.FC = () => {
       )}
       {!loading && !error && profile && (
         <div className="flex-1 px-4 py-6">
-          {/* Example: Show user's first name */}
-          <div className="mb-4 text-lg font-semibold text-sky-700">
-            Welcome, {profile.firstName}!
+          {/* Welcome Message */}
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Welcome, {profile.firstName || 'there'}! 👋
+            </h1>
+            <p className="text-gray-600">
+              Ready to connect, grow, and thrive in your U.S. journey?
+            </p>
           </div>
+
           {/* ... rest of the dashboard ... */}
           {/* Notifications Section */}
           <div className="mb-6">

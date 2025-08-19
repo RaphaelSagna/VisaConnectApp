@@ -19,7 +19,13 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
 } else {
   // Development: Use local file
   try {
-    serviceAccount = require('./firebaseServiceAccount.json');
+    // Try to load from the dist folder first (production build)
+    try {
+      serviceAccount = require(path.join(__dirname, 'firebaseServiceAccount.json'));
+    } catch (distError) {
+      // Fallback to project root (development)
+      serviceAccount = require(path.join(__dirname, '../firebaseServiceAccount.json'));
+    }
   } catch (error) {
     console.error(
       'Firebase service account not found. Please set FIREBASE_SERVICE_ACCOUNT environment variable or add firebaseServiceAccount.json'

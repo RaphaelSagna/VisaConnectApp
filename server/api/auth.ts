@@ -24,8 +24,8 @@ export default function authApi(app: Express) {
       res.status(201).json({
         success: true,
         message:
-          'User registered successfully. Please check your email for verification.',
-        data: result,
+          result.message || 'User registered successfully. Please log in.',
+        data: result.user,
       });
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -44,6 +44,37 @@ export default function authApi(app: Express) {
     }
   });
 
+  // Legacy endpoint - redirects to new user profile endpoint
+  app.get(
+    '/api/auth/me',
+    authenticateUser,
+    async (req: Request, res: Response) => {
+      try {
+        const user = await userService.getUserById(req.user!.uid);
+
+        if (!user) {
+          return res.status(404).json({
+            error: 'User not found',
+            message: 'User profile not found in database',
+          });
+        }
+
+        res.json({
+          success: true,
+          data: user,
+        });
+      } catch (error: any) {
+        console.error('Get profile error:', error);
+        res.status(500).json({
+          error: 'Failed to get profile',
+          message:
+            'This endpoint is deprecated. Please use /api/user/profile instead.',
+          deprecated: true,
+        });
+      }
+    }
+  );
+
   // User login
   app.post('/api/auth/login', async (req: Request, res: Response) => {
     try {
@@ -60,8 +91,8 @@ export default function authApi(app: Express) {
 
       res.json({
         success: true,
-        message: 'Login successful',
-        data: result,
+        message: result.message || 'Login successful',
+        data: result.user,
       });
     } catch (error: any) {
       console.error('Login error:', error);
@@ -79,103 +110,6 @@ export default function authApi(app: Express) {
       });
     }
   });
-
-  // Get current user profile (requires authentication)
-  app.get(
-    '/api/auth/me',
-    authenticateUser,
-    async (req: Request, res: Response) => {
-      try {
-        const user = await authService.getUserByUid(req.user!.uid);
-
-        if (!user) {
-          return res.status(404).json({
-            error: 'User not found',
-            message: 'User profile not found in database',
-          });
-        }
-
-        res.json({
-          success: true,
-          data: user,
-        });
-      } catch (error: any) {
-        console.error('Get profile error:', error);
-        res.status(500).json({
-          error: 'Failed to get profile',
-          message: error.message || 'Failed to retrieve user profile',
-        });
-      }
-    }
-  );
-
-  // Update basic user profile (requires authentication)
-  app.put(
-    '/api/auth/profile',
-    authenticateUser,
-    async (req: Request, res: Response) => {
-      try {
-        const updates = req.body;
-        const user = await authService.updateUserProfile(
-          req.user!.uid,
-          updates
-        );
-
-        if (!user) {
-          return res.status(404).json({
-            error: 'User not found',
-            message: 'User profile not found in database',
-          });
-        }
-
-        res.json({
-          success: true,
-          message: 'Profile updated successfully',
-          data: user,
-        });
-      } catch (error: any) {
-        console.error('Update profile error:', error);
-        res.status(500).json({
-          error: 'Failed to update profile',
-          message: error.message || 'Failed to update user profile',
-        });
-      }
-    }
-  );
-
-  // Update detailed profile information (requires authentication)
-  app.put(
-    '/api/auth/profile/details',
-    authenticateUser,
-    async (req: Request, res: Response) => {
-      try {
-        const profileData = req.body;
-        const user = await userService.updateProfileDetails(
-          req.user!.uid,
-          profileData
-        );
-
-        if (!user) {
-          return res.status(404).json({
-            error: 'User not found',
-            message: 'User profile not found in database',
-          });
-        }
-
-        res.json({
-          success: true,
-          message: 'Detailed profile updated successfully',
-          data: user,
-        });
-      } catch (error: any) {
-        console.error('Update detailed profile error:', error);
-        res.status(500).json({
-          error: 'Failed to update detailed profile',
-          message: error.message || 'Failed to update detailed profile',
-        });
-      }
-    }
-  );
 
   // Verify email
   app.post(
@@ -225,28 +159,6 @@ export default function authApi(app: Express) {
       });
     }
   });
-
-  // Delete user account (requires authentication)
-  app.delete(
-    '/api/auth/account',
-    authenticateUser,
-    async (req: Request, res: Response) => {
-      try {
-        await authService.deleteUser(req.user!.uid);
-
-        res.json({
-          success: true,
-          message: 'Account deleted successfully',
-        });
-      } catch (error: any) {
-        console.error('Delete account error:', error);
-        res.status(500).json({
-          error: 'Failed to delete account',
-          message: error.message || 'Failed to delete user account',
-        });
-      }
-    }
-  );
 
   // Protected route example (requires email verification)
   app.get(

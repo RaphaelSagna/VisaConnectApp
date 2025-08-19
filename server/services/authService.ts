@@ -1,10 +1,12 @@
 import admin from 'firebase-admin';
 import userService from './userService';
 import { BasicUserData, CreateUserData, User } from './userService';
+import { config } from '../config/env';
 
 export interface AuthResponse {
+  success: boolean;
+  message: string;
   user: User;
-  token: string;
 }
 
 export interface LoginData {
@@ -53,17 +55,13 @@ export class AuthService {
         employer: registerData.employer,
       });
 
-      // 3. Generate custom token for immediate login
-      const customToken = await admin
-        .auth()
-        .createCustomToken(firebaseUser.uid);
-
       // 4. Send email verification
       // await this.sendEmailVerification(firebaseUser.uid);
 
       return {
+        success: true,
+        message: 'User registered successfully. Please log in.',
         user: userProfile,
-        token: customToken,
       };
     } catch (error: any) {
       // If PostgreSQL creation fails, clean up Firebase user
@@ -84,35 +82,59 @@ export class AuthService {
   // Login existing user
   async loginUser(loginData: LoginData): Promise<AuthResponse> {
     try {
-      // 1. Verify Firebase credentials
-      const firebaseUser = await admin.auth().getUserByEmail(loginData.email);
+      // 1. Verify password using Firebase Auth REST API
+      const verifyPasswordResponse = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${config.firebase.webApiKey}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: loginData.email,
+            password: loginData.password,
+            returnSecureToken: true,
+          }),
+        }
+      );
+
+      if (!verifyPasswordResponse.ok) {
+        const errorData = (await verifyPasswordResponse.json()) as any;
+        if (
+          errorData.error?.message?.includes('INVALID_PASSWORD') ||
+          errorData.error?.message?.includes('EMAIL_NOT_FOUND')
+        ) {
+          throw new Error('Invalid email or password');
+        }
+        throw new Error('Authentication failed');
+      }
+
+      const authData = (await verifyPasswordResponse.json()) as any;
+      const firebaseUid = authData.localId;
 
       // 2. Get user profile from PostgreSQL
-      const userProfile = await userService.getUserById(firebaseUser.uid);
+      const userProfile = await userService.getUserById(firebaseUid);
 
       if (!userProfile) {
         // User exists in Firebase but not in PostgreSQL - sync them
-        const syncedProfile = await this.syncUserFromFirebase(firebaseUser.uid);
+        const syncedProfile = await this.syncUserFromFirebase(firebaseUid);
         return {
+          success: true,
+          message: 'Login successful',
           user: syncedProfile,
-          token: await admin.auth().createCustomToken(firebaseUser.uid),
         };
       }
 
-      // 3. Generate custom token
-      const customToken = await admin
-        .auth()
-        .createCustomToken(firebaseUser.uid);
-
       return {
+        success: true,
+        message: 'Login successful',
         user: userProfile,
-        token: customToken,
       };
     } catch (error: any) {
-      if (error.code === 'auth/user-not-found') {
-        throw new Error('Invalid email or password');
+      if (error.message === 'Invalid email or password') {
+        throw error;
       }
-      throw error;
+      throw new Error('Authentication failed');
     }
   }
 
@@ -183,32 +205,6 @@ export class AuthService {
     } catch (error) {
       throw new Error('Failed to send password reset email');
     }
-  }
-
-  // Delete user account
-  async deleteUser(uid: string): Promise<void> {
-    try {
-      // 1. Delete from PostgreSQL first
-      await userService.deleteUser(uid);
-
-      // 2. Delete from Firebase
-      await admin.auth().deleteUser(uid);
-    } catch (error) {
-      throw new Error('Failed to delete user account');
-    }
-  }
-
-  // Get user by Firebase UID
-  async getUserByUid(uid: string): Promise<User | null> {
-    return await userService.getUserById(uid);
-  }
-
-  // Update user profile
-  async updateUserProfile(
-    uid: string,
-    updates: Partial<CreateUserData>
-  ): Promise<User | null> {
-    return await userService.updateUser(uid, updates);
   }
 }
 

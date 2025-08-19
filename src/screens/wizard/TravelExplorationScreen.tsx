@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Button from '../../components/Button';
 import { useNavigate } from 'react-router-dom';
 import { MapPinIcon } from '@heroicons/react/24/outline';
+import { apiPatch } from '../../api';
 
 const TravelExplorationScreen: React.FC = () => {
   const [form, setForm] = useState({
@@ -11,9 +12,68 @@ const TravelExplorationScreen: React.FC = () => {
     willingToGuide: 'no' as 'yes' | 'no',
   });
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState('');
+
+  const handleContinue = async () => {
+    setLoading(true);
+    setApiError('');
+    try {
+      const userData = localStorage.getItem('userData');
+      const user = userData ? JSON.parse(userData) : null;
+      const uid = user?.uid;
+      if (!uid) throw new Error('User not authenticated');
+
+      // Update user profile with travel exploration information
+      await apiPatch('/api/user/profile', {
+        road_trips: form.roadTrips === 'yes',
+        favorite_place: form.favoritePlace,
+        travel_tips: form.travelTips,
+        willing_to_guide: form.willingToGuide === 'yes',
+        profile_answers: {
+          travel_exploration: {
+            roadTrips: form.roadTrips,
+            favoritePlace: form.favoritePlace,
+            travelTips: form.travelTips,
+            willingToGuide: form.willingToGuide,
+          },
+        },
+      });
+
+      setLoading(false);
+      navigate('/knowledge-community');
+    } catch (err: any) {
+      setApiError(err.message || 'Failed to save travel exploration info');
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="bg-gray-50 flex flex-col items-center pb-4">
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-center justify-center">
+          <svg
+            className="animate-spin h-10 w-10 text-sky-500"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+            ></path>
+          </svg>
+        </div>
+      )}
       <div className="w-full max-w-md flex flex-col items-center">
         {/* Header */}
         <div className="w-full bg-blue-100 rounded-b-3xl flex flex-col items-center py-6 mb-6 relative">
@@ -117,10 +177,14 @@ const TravelExplorationScreen: React.FC = () => {
         <Button
           variant="primary"
           className="w-full max-w-md mb-2 mx-4"
-          onClick={() => navigate('/knowledge-community')}
+          onClick={handleContinue}
+          disabled={loading}
         >
-          Continue
+          Save & Continue
         </Button>
+        {apiError && (
+          <div className="text-red-500 text-center mt-2">{apiError}</div>
+        )}
         <button
           className="text-gray-500 underline text-base mt-2"
           onClick={() => navigate('/dashboard')}

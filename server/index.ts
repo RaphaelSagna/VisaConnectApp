@@ -9,6 +9,7 @@ import { config } from './config/env';
 import pool from './db/config';
 // Register API routes
 import authApi from './api/auth';
+import userApi from './api/user';
 
 // Initialize Firebase Admin SDK
 let serviceAccount: ServiceAccount;
@@ -99,6 +100,7 @@ app.get('/api/health', async (req: Request, res: Response) => {
 
 // Register API routes
 authApi(app);
+userApi(app);
 
 // Only serve static files in production
 if (process.env.NODE_ENV !== 'development') {

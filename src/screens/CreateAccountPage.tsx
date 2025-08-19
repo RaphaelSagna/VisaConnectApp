@@ -10,13 +10,10 @@ interface RegisterResponse {
   success: boolean;
   message: string;
   data: {
-    user: {
-      id: string;
-      email: string;
-      first_name?: string;
-      last_name?: string;
-    };
-    token: string;
+    id: string;
+    email: string;
+    first_name?: string;
+    last_name?: string;
   };
 }
 
@@ -134,16 +131,15 @@ const CreateAccountPage: React.FC = () => {
         }
       );
 
-      // Store the token and user data
-      if (response.data && response.data.token) {
-        localStorage.setItem('userToken', response.data.token);
+      // Store user data (no token - user needs to log in)
+      if (response.data) {
         localStorage.setItem(
           'userData',
           JSON.stringify({
-            uid: response.data.user.id,
-            email: response.data.user.email,
-            first_name: response.data.user.first_name,
-            last_name: response.data.user.last_name,
+            uid: response.data.id,
+            email: response.data.email,
+            first_name: response.data.first_name,
+            last_name: response.data.last_name,
           })
         );
       }

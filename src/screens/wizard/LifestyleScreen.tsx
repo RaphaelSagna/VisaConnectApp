@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Button from '../../components/Button';
 import { useNavigate } from 'react-router-dom';
 import { HandThumbUpIcon } from '@heroicons/react/24/outline';
+import { apiPatch } from '../../api';
 
 const Input = React.forwardRef<
   HTMLInputElement,
@@ -24,6 +25,8 @@ const LifestyleScreen: React.FC = () => {
     willingToDrive: 'no' as 'yes' | 'no',
   });
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -36,8 +39,67 @@ const LifestyleScreen: React.FC = () => {
     setForm({ ...form, [field]: value });
   };
 
+  const handleContinue = async () => {
+    setLoading(true);
+    setApiError('');
+    try {
+      const userData = localStorage.getItem('userData');
+      const user = userData ? JSON.parse(userData) : null;
+      const uid = user?.uid;
+      if (!uid) throw new Error('User not authenticated');
+
+      // Update user profile with lifestyle information
+      await apiPatch('/api/user/profile', {
+        hobbies: form.hobbies ? [form.hobbies] : [],
+        favorite_state: form.favoriteState,
+        preferred_outings: form.outings ? [form.outings] : [],
+        has_car: form.hasCar === 'yes',
+        offers_rides: form.willingToDrive === 'yes',
+        profile_answers: {
+          lifestyle_personality: {
+            hobbies: form.hobbies ? [form.hobbies] : [],
+            favoriteState: form.favoriteState,
+            outings: form.outings ? [form.outings] : [],
+            hasCar: form.hasCar,
+            willingToDrive: form.willingToDrive,
+          },
+        },
+      });
+
+      setLoading(false);
+      navigate('/travel-exploration');
+    } catch (err: any) {
+      setApiError(err.message || 'Failed to save lifestyle info');
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center pb-4">
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-center justify-center">
+          <svg
+            className="animate-spin h-10 w-10 text-sky-500"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+            ></path>
+          </svg>
+        </div>
+      )}
       <div className="w-full max-w-md flex flex-col items-center">
         {/* Header */}
 
@@ -163,10 +225,14 @@ const LifestyleScreen: React.FC = () => {
         <Button
           variant="primary"
           className="w-full max-w-md mb-2 px-4"
-          onClick={() => navigate('/travel-exploration')}
+          onClick={handleContinue}
+          disabled={loading}
         >
-          Continue
+          Save & Continue
         </Button>
+        {apiError && (
+          <div className="text-red-500 text-center mt-2">{apiError}</div>
+        )}
         <button
           className="text-gray-500 underline text-base mt-2"
           onClick={() => navigate('/dashboard')}

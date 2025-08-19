@@ -66,11 +66,19 @@ const AccountCreatedPage: React.FC = () => {
         {/* Let's go button */}
         <Button
           variant="primary"
-          className="w-full max-w-md"
+          className="w-full max-w-md mb-4"
           onClick={() => navigate('/background')}
         >
           Let's go!
         </Button>
+
+        {/* Skip for now button */}
+        <button
+          className="text-gray-500 underline text-base"
+          onClick={() => navigate('/')}
+        >
+          Back to Welcome
+        </button>
       </div>
     </div>
   );

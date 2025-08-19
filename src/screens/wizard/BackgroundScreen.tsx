@@ -81,13 +81,25 @@ const BackgroundScreen: React.FC = () => {
       const user = userData ? JSON.parse(userData) : null;
       const uid = user?.uid;
       if (!uid) throw new Error('User not authenticated');
-      await apiPatch(`/api/user/${uid}/background_identity`, {
+
+      // Update user profile with background information
+      await apiPatch('/api/user/profile', {
         nationality: form.nationality,
         languages: form.languages,
-        workHistory: form.workHistory,
-        relationshipStatus: form.relationshipStatus,
-        stayInUS: form.stayInUS,
+        other_us_jobs: form.workHistory ? [form.workHistory] : [],
+        relationship_status: form.relationshipStatus,
+        // Map stayInUS to a more appropriate field or store in profile_answers
+        profile_answers: {
+          background_identity: {
+            nationality: form.nationality,
+            languages: form.languages,
+            workHistory: form.workHistory,
+            relationshipStatus: form.relationshipStatus,
+            stayInUS: form.stayInUS,
+          },
+        },
       });
+
       setLoading(false);
       navigate('/lifestyle');
     } catch (err: any) {

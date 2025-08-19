@@ -10,6 +10,75 @@ const DashboardScreen: React.FC = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  // Calculate profile completion percentage
+  const calculateCompletion = (userData: any) => {
+    console.log('userData', userData);
+    if (!userData) return { completed: 0, total: 6, percentage: 0 };
+
+    let completed = 0;
+    const total = 6;
+
+    // 1. Basic Info (visa type, location, occupation, employer)
+    if (
+      userData.visa_type &&
+      userData.current_location?.city &&
+      userData.current_location?.state
+    ) {
+      completed++;
+    }
+
+    // 2. Background & Identity
+    if (
+      userData.nationality &&
+      userData.languages?.length > 0 &&
+      userData.other_us_jobs?.length > 0 &&
+      userData.relationship_status
+    ) {
+      completed++;
+    }
+
+    // 3. Lifestyle & Personality
+    if (
+      userData.hobbies?.length > 0 &&
+      userData.favorite_state &&
+      userData.preferred_outings?.length > 0 &&
+      userData.has_car !== undefined &&
+      userData.offers_rides !== undefined
+    ) {
+      completed++;
+    }
+
+    // 4. Travel & Exploration
+    if (
+      userData.road_trips !== undefined &&
+      userData.favorite_place &&
+      userData.travel_tips &&
+      userData.willing_to_guide !== undefined
+    ) {
+      completed++;
+    }
+
+    // 5. Knowledge & Community
+    if (
+      userData.mentorship_interest !== undefined &&
+      userData.job_boards?.length > 0 &&
+      userData.visa_advice
+    ) {
+      completed++;
+    }
+
+    // 6. Profile Answers (wizard data)
+    // if (
+    //   userData.profile_answers &&
+    //   Object.keys(userData.profile_answers).length > 0
+    // ) {
+    //   completed++;
+    // }
+    console.log('completed', completed);
+    const percentage = Math.floor((completed / total) * 100);
+    return { completed, total, percentage };
+  };
+
   useEffect(() => {
     const userData = localStorage.getItem('userData');
     const user = userData ? JSON.parse(userData) : null;
@@ -29,36 +98,10 @@ const DashboardScreen: React.FC = () => {
       visaType: user.visa_type || '',
       employer: user.employer || '',
       job: user.job || '',
-      // Mock profile answers for now
-      profileAnswers: {
-        background_identity: {
-          nationality: '',
-          languages: [],
-          firstTimeInUS: { year: null, location: '', visa: '' },
-          jobDiscoveryMethod: '',
-          visaChangeJourney: '',
-          otherUSJobs: [],
-        },
-        lifestyle_personality: {
-          hobbies: [],
-          favoriteState: '',
-          preferredOutings: [],
-          hasCar: false,
-          offersRides: false,
-          relationshipStatus: '',
-        },
-        travel_exploration: {
-          roadTrips: false,
-          favoritePlace: '',
-          travelTips: '',
-          willingToGuide: false,
-        },
-        knowledge_community: {
-          mentorshipInterest: false,
-          jobBoards: [],
-          visaAdvice: '',
-        },
-      },
+      // Calculate completion based on actual user data
+      completion: calculateCompletion(user),
+      // Use actual profile data if available
+      profileAnswers: user.profile_answers || {},
     });
     setLoading(false);
   }, []);
@@ -146,7 +189,7 @@ const DashboardScreen: React.FC = () => {
           <div className="mb-6 md:mb-8">
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-bold text-lg md:text-xl text-gray-900">
-                Notifications (3 new)
+                Notifications (0 new)
               </h2>
               <span className="text-gray-500 text-xl">→</span>
             </div>
@@ -160,16 +203,29 @@ const DashboardScreen: React.FC = () => {
             <div className="flex items-center gap-2 mb-4">
               <span className="text-blue-500 text-base md:text-lg">✓</span>
               <span className="text-gray-700 text-sm md:text-base">
-                3 out of 6 completed
+                {profile.completion?.completed || 0} out of{' '}
+                {profile.completion?.total || 6} completed
               </span>
             </div>
+            {profile.completion?.percentage > 0 && (
+              <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+                <div
+                  className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${profile.completion.percentage}%` }}
+                ></div>
+              </div>
+            )}
             <div className="text-center">
               <Button
                 variant="primary"
                 className="w-full md:w-auto px-6 md:px-8 py-2 md:py-3 text-base md:text-lg"
                 onClick={() => navigate('/background')}
               >
-                Complete questionnaire
+                {profile.completion?.completed === 0
+                  ? 'Start questionnaire'
+                  : profile.completion?.completed === profile.completion?.total
+                  ? 'View profile'
+                  : 'Continue questionnaire'}
               </Button>
             </div>
           </div>

@@ -4,18 +4,40 @@ import { useNavigate } from 'react-router-dom';
 import { apiPostPublic } from '../api';
 import logo from '../assets/images/logo.png';
 
-// Types for API responses
+// Types for login response
 interface LoginResponse {
   success: boolean;
   message: string;
   data: {
-    user: {
-      id: string;
-      email: string;
-      first_name?: string;
-      last_name?: string;
+    id: string;
+    email: string;
+    first_name?: string;
+    last_name?: string;
+    visa_type?: string;
+    current_location?: {
+      city: string;
+      state: string;
+      country: string;
     };
-    token: string;
+    occupation?: string;
+    employer?: string;
+    nationality?: string;
+    languages?: string[];
+    other_us_jobs?: string[];
+    relationship_status?: string;
+    hobbies?: string[];
+    favorite_state?: string;
+    preferred_outings?: string[];
+    has_car?: boolean;
+    offers_rides?: boolean;
+    road_trips?: boolean;
+    favorite_place?: string;
+    travel_tips?: string;
+    willing_to_guide?: boolean;
+    mentorship_interest?: boolean;
+    job_boards?: string[];
+    visa_advice?: string;
+    profile_answers?: Record<string, any>;
   };
 }
 
@@ -66,22 +88,48 @@ const SignInScreen: React.FC = () => {
     setApiError('');
 
     try {
-      // Login with the new API endpoint
-      const response = await apiPostPublic<LoginResponse>('/api/auth/login', {
-        email: form.email,
-        password: form.password,
-      });
+      // Login with backend API
+      const loginResponse = await apiPostPublic<LoginResponse>(
+        '/api/auth/login',
+        {
+          email: form.email,
+          password: form.password,
+        }
+      );
 
-      // Store the token and user data
-      if (response.data && response.data.token) {
-        localStorage.setItem('userToken', response.data.token);
+      console.log('Login response:', loginResponse); // Debug log
+
+      if (loginResponse.data) {
+        // Store user data from backend response
         localStorage.setItem(
           'userData',
           JSON.stringify({
-            uid: response.data.user.id,
-            email: response.data.user.email,
-            first_name: response.data.user.first_name,
-            last_name: response.data.user.last_name,
+            uid: loginResponse.data.id,
+            email: loginResponse.data.email,
+            first_name: loginResponse.data.first_name || '',
+            last_name: loginResponse.data.last_name || '',
+            visa_type: loginResponse.data.visa_type || '',
+            current_location: loginResponse.data.current_location || {},
+            occupation: loginResponse.data.occupation || '',
+            employer: loginResponse.data.employer || '',
+            // Include all profile fields for completion calculation
+            nationality: loginResponse.data.nationality,
+            languages: loginResponse.data.languages || [],
+            other_us_jobs: loginResponse.data.other_us_jobs || [],
+            relationship_status: loginResponse.data.relationship_status,
+            hobbies: loginResponse.data.hobbies || [],
+            favorite_state: loginResponse.data.favorite_state,
+            preferred_outings: loginResponse.data.preferred_outings || [],
+            has_car: loginResponse.data.has_car,
+            offers_rides: loginResponse.data.offers_rides,
+            road_trips: loginResponse.data.road_trips,
+            favorite_place: loginResponse.data.favorite_place,
+            travel_tips: loginResponse.data.travel_tips,
+            willing_to_guide: loginResponse.data.willing_to_guide,
+            mentorship_interest: loginResponse.data.mentorship_interest,
+            job_boards: loginResponse.data.job_boards || [],
+            visa_advice: loginResponse.data.visa_advice,
+            profile_answers: loginResponse.data.profile_answers || {},
           })
         );
 
@@ -91,17 +139,19 @@ const SignInScreen: React.FC = () => {
         throw new Error('Invalid response from server');
       }
     } catch (error: any) {
-      // Handle API errors
+      // Handle backend API errors
       let userFriendlyError = 'Sign in failed';
 
       if (error.message) {
         if (error.message.includes('Invalid email or password')) {
           userFriendlyError = 'Username and/or password is invalid';
-        } else if (error.message.includes('too many')) {
-          userFriendlyError =
-            'Too many failed attempts. Please try again later.';
+        } else if (error.message.includes('Authentication failed')) {
+          userFriendlyError = 'Authentication failed. Please try again.';
+        } else if (error.message.includes('Invalid response from server')) {
+          userFriendlyError = 'Server error. Please try again.';
         } else {
-          userFriendlyError = error.message;
+          userFriendlyError =
+            error.message || 'Sign in failed. Please try again.';
         }
       }
 

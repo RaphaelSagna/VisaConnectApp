@@ -285,7 +285,11 @@ const CreateAccountPage: React.FC = () => {
                 )}
               </div>
               <CityAutocomplete
-                value={`${form.current_location.city}, ${form.current_location.state}`}
+                value={
+                  form.current_location.city && form.current_location.state
+                    ? `${form.current_location.city}, ${form.current_location.state}`
+                    : ''
+                }
                 onChange={(value) => {
                   const [city, state] = value.split(', ').map((s) => s.trim());
                   setForm({

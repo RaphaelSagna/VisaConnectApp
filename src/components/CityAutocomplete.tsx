@@ -16,6 +16,7 @@ const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
   className = '',
   required = false,
 }) => {
+  const [inputValue, setInputValue] = useState(value);
   const [suggestions, setSuggestions] = useState<City[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -23,11 +24,21 @@ const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
+  // Sync inputValue with value prop
+  useEffect(() => {
+    setInputValue(value);
+  }, [value]);
+
   // Search cities from local database
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (value.length >= 2) {
-        const results = searchCities(value);
+      // Only search if we have meaningful input (not just commas, spaces, or empty)
+      const meaningfulInput = inputValue
+        .trim()
+        .replace(/^[, ]+/, '')
+        .replace(/[, ]+$/, '');
+      if (meaningfulInput.length >= 2) {
+        const results = searchCities(inputValue);
         setSuggestions(results);
         setShowSuggestions(results.length > 0);
         setSelectedIndex(-1);
@@ -40,14 +51,17 @@ const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
     }, 200);
 
     return () => clearTimeout(timeoutId);
-  }, [value]);
+  }, [inputValue]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    onChange(newValue);
     setShowSuggestions(true);
   };
 
   const handleSuggestionClick = (suggestion: City) => {
+    setInputValue(suggestion.fullName);
     onChange(suggestion.fullName);
     setShowSuggestions(false);
     setSuggestions([]);
@@ -94,10 +108,18 @@ const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
       <input
         ref={inputRef}
         type="text"
-        value={value}
+        value={inputValue}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
-        onFocus={() => setShowSuggestions(suggestions.length > 0)}
+        onFocus={() => {
+          const meaningfulInput = inputValue
+            .trim()
+            .replace(/^[, ]+/, '')
+            .replace(/[, ]+$/, '');
+          setShowSuggestions(
+            meaningfulInput.length >= 2 && suggestions.length > 0
+          );
+        }}
         onBlur={handleBlur}
         placeholder={placeholder}
         required={required}

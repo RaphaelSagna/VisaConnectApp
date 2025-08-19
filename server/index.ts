@@ -92,12 +92,32 @@ if (process.env.NODE_ENV === 'production') {
   // Serve static files from the React app build FIRST
   const buildPath = path.join(__dirname, '../../build');
   console.log('Serving static files from:', buildPath);
-  app.use(express.static(buildPath));
+
+  // Add cache-busting headers for static assets
+  app.use(
+    express.static(buildPath, {
+      setHeaders: (res, path) => {
+        if (path.endsWith('.js') || path.endsWith('.css')) {
+          // Cache static assets for 1 year with cache busting
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        } else if (path.endsWith('.html')) {
+          // Don't cache HTML files
+          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+          res.setHeader('Pragma', 'no-cache');
+          res.setHeader('Expires', '0');
+        }
+      },
+    })
+  );
 
   // Serve React app for all other routes LAST (after static files)
   app.get('*', (req: Request, res: Response) => {
     const indexPath = path.join(buildPath, 'index.html');
     console.log('Serving index.html from:', indexPath);
+    // Add no-cache headers for HTML files
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.sendFile(indexPath);
   });
 } else {

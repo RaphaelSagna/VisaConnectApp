@@ -1,9 +1,8 @@
-const CACHE_NAME = 'visa-connect-v2';
+/* eslint-disable */
+// Service Worker - JavaScript file (not TypeScript)
+const CACHE_NAME = 'visa-connect-v3';
 const urlsToCache = [
   '/',
-  '/static/js/main.b6f47f36.js',
-  '/static/css/main.c947379c.css',
-  '/static/js/453.26a5161b.chunk.js',
   '/manifest.json',
   '/favicon.ico',
   '/logo192.png',
@@ -22,6 +21,20 @@ self.addEventListener('install', (event) => {
 
 // Fetch event - serve from cache when offline
 self.addEventListener('fetch', (event) => {
+  // Skip caching for JavaScript and CSS files to prevent stale cache issues
+  if (
+    event.request.url.includes('/static/js/') ||
+    event.request.url.includes('/static/css/')
+  ) {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        // Only fall back to cache if network fails
+        return caches.match(event.request);
+      })
+    );
+    return;
+  }
+
   event.respondWith(
     caches
       .match(event.request)
@@ -57,4 +70,11 @@ self.addEventListener('activate', (event) => {
 // Force update by skipping waiting
 self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
+});
+
+// Listen for skip waiting message
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });

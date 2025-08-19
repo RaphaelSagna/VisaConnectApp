@@ -23,7 +23,8 @@ export function register(config) {
     }
 
     window.addEventListener('load', () => {
-      const swUrl = `${process.env.PUBLIC_URL}/sw.js`;
+      // Add cache-busting parameter to service worker URL
+      const swUrl = `${process.env.PUBLIC_URL}/sw.js?v=${Date.now()}`;
 
       if (isLocalhost) {
         // This is running on localhost. Let's check if a service worker still exists or not.
@@ -47,8 +48,11 @@ export function register(config) {
 
 function registerValidSW(swUrl, config) {
   navigator.serviceWorker
-    .register(swUrl)
+    .register(swUrl, { updateViaCache: 'none' })
     .then((registration) => {
+      // Force immediate update check
+      registration.update();
+
       registration.onupdatefound = () => {
         const installingWorker = registration.installing;
         if (installingWorker == null) {
@@ -64,6 +68,12 @@ function registerValidSW(swUrl, config) {
                 'New content is available and will be used when all ' +
                   'tabs for this page are closed. See https://cra.link/PWA.'
               );
+
+              // Force immediate activation for production
+              if (!isLocalhost) {
+                installingWorker.postMessage({ type: 'SKIP_WAITING' });
+                window.location.reload();
+              }
 
               // Execute callback
               if (config && config.onUpdate) {

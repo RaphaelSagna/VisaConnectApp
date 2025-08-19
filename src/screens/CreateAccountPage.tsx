@@ -3,6 +3,7 @@ import Button from '../components/Button';
 import { useNavigate } from 'react-router-dom';
 import CityAutocomplete from '../components/CityAutocomplete';
 import { apiPostPublic } from '../api';
+import logo from '../assets/images/logo.png';
 
 // Types for API responses
 interface RegisterResponse {
@@ -159,6 +160,9 @@ const CreateAccountPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center px-4 pt-8 pb-4">
       <div className="w-full max-w-md flex flex-col items-center">
+        <div className="mb-4">
+          <img src={logo} alt="VisaConnect Logo" className="h-16 w-auto" />
+        </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-1 mt-2 text-center">
           Create Account
         </h1>

@@ -1,12 +1,17 @@
 import React from 'react';
 import Button from '../components/Button';
 import { useNavigate } from 'react-router-dom';
+import logo from '../assets/images/logo.png';
 
 const AccountCreatedPage: React.FC = () => {
   const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center px-4 pt-8 pb-4">
       <div className="w-full max-w-md flex flex-col items-center">
+        {/* Logo */}
+        <div className="mb-4">
+          <img src={logo} alt="VisaConnect Logo" className="h-16 w-auto" />
+        </div>
         {/* Icon and Title */}
         <div className="flex flex-col items-center mb-4">
           {/* Placeholder for target icon */}

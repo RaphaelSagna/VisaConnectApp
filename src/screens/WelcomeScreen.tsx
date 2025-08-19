@@ -10,7 +10,7 @@ const LoginPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-8">
       {/* Logo and Title */}
       <div className="mb-2 flex flex-col items-center">
-        <img src={logo} alt="Logo" className="" />
+        <img src={logo} alt="VisaConnect Logo" className="h-16 w-auto" />
       </div>
       {/* Description */}
       <p className="text-gray-600 text-center text-sm md:text-base mb-4 max-w-xl">

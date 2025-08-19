@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Button from '../components/Button';
 import { useNavigate } from 'react-router-dom';
 import { apiPostPublic } from '../api';
+import logo from '../assets/images/logo.png';
 
 // Types for API responses
 interface LoginResponse {
@@ -115,10 +116,9 @@ const SignInScreen: React.FC = () => {
       <div className="w-full max-w-md flex flex-col items-center">
         {/* Header */}
         <div className="flex flex-col items-center mb-8">
-          <div className="text-4xl font-bold mb-2">VisaConnect</div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome Back
-          </h1>
+          <div className="mb-4">
+            <img src={logo} alt="VisaConnect Logo" className="h-16 w-auto" />
+          </div>
           <p className="text-gray-600 text-center">Sign in to your account</p>
         </div>
 

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from '../../components/Button';
 import { useNavigate } from 'react-router-dom';
 import { AcademicCapIcon } from '@heroicons/react/24/outline';
 import { apiPatch } from '../../api';
+import { useUserStore } from '../../stores/userStore';
 
 const KnowledgeCommunityScreen: React.FC = () => {
   const [form, setForm] = useState({
@@ -14,17 +15,35 @@ const KnowledgeCommunityScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
 
+  // Zustand store
+  const { user, updateUser } = useUserStore();
+
+  // Pre-populate form with existing user data
+  useEffect(() => {
+    if (user) {
+      setForm({
+        mentorshipInterest: user.mentorship_interest ? 'yes' : 'no',
+        jobBoards: user.job_boards?.join(', ') || '',
+        visaAdvice: user.visa_advice || '',
+      });
+    }
+  }, [user]);
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!user?.uid) {
+      navigate('/sign-in');
+    }
+  }, [user, navigate]);
+
   const handleContinue = async () => {
     setLoading(true);
     setApiError('');
     try {
-      const userData = localStorage.getItem('userData');
-      const user = userData ? JSON.parse(userData) : null;
-      const uid = user?.uid;
-      if (!uid) throw new Error('User not authenticated');
+      if (!user?.uid) throw new Error('User not authenticated');
 
       // Update user profile with knowledge & community information
-      await apiPatch('/api/user/profile', {
+      const updateData = {
         mentorship_interest: form.mentorshipInterest === 'yes',
         job_boards: form.jobBoards ? [form.jobBoards] : [],
         visa_advice: form.visaAdvice,
@@ -35,7 +54,12 @@ const KnowledgeCommunityScreen: React.FC = () => {
             visaAdvice: form.visaAdvice,
           },
         },
-      });
+      };
+
+      await apiPatch('/api/user/profile', updateData);
+
+      // Update local store with new data
+      updateUser(updateData);
 
       setLoading(false);
       navigate('/dashboard');
@@ -47,6 +71,7 @@ const KnowledgeCommunityScreen: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center pb-4">
+      {/* Loading state for form submission */}
       {loading && (
         <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-center justify-center">
           <svg
@@ -71,97 +96,116 @@ const KnowledgeCommunityScreen: React.FC = () => {
           </svg>
         </div>
       )}
-      <div className="w-full max-w-md flex flex-col items-center">
-        {/* Header */}
-        <div className="w-full bg-purple-100 rounded-b-3xl flex flex-col items-center py-6 mb-6 relative">
-          <AcademicCapIcon className="h-12 w-12 text-sky-500 mb-2" />
-          {/* Progress dots */}
-          <div className="flex gap-1 mb-2">
-            <span className="w-2 h-2 bg-gray-400 rounded-full inline-block" />
-            <span className="w-2 h-2 bg-gray-400 rounded-full inline-block" />
-            <span className="w-2 h-2 bg-gray-400 rounded-full inline-block" />
-            <span className="w-2 h-2 bg-gray-400 rounded-full inline-block" />
-            <span className="w-2 h-2 bg-gray-800 rounded-full inline-block" />{' '}
-            {/* Current step */}
+
+      {/* Loading state for user data */}
+      {!user && (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading your profile...</p>
           </div>
-          <h1 className="text-xl font-bold text-gray-900 mb-2 text-center px-4">
-            Knowledge & Community
-          </h1>
         </div>
-        {/* Form Fields */}
-        <div className="w-full flex flex-col px-4">
-          <div className="mb-4">
-            <label className="block text-gray-800 font-medium mb-2">
-              Would you be open to mentoring someone with your visa type?
-            </label>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                className={`px-6 py-3 rounded-full font-semibold text-white ${
-                  form.mentorshipInterest === 'yes'
-                    ? 'bg-sky-400'
-                    : 'bg-sky-200'
-                } focus:outline-none`}
-                onClick={() => setForm({ ...form, mentorshipInterest: 'yes' })}
-              >
-                Yes
-              </button>
-              <button
-                type="button"
-                className={`px-6 py-3 rounded-full font-semibold border-2 ${
-                  form.mentorshipInterest === 'no'
-                    ? 'border-sky-400 text-sky-400'
-                    : 'border-gray-300 text-gray-800'
-                } bg-white focus:outline-none`}
-                onClick={() => setForm({ ...form, mentorshipInterest: 'no' })}
-              >
-                No
-              </button>
+      )}
+
+      {user && (
+        <div className="w-full max-w-md flex flex-col items-center">
+          {/* Header */}
+          <div className="w-full bg-purple-100 rounded-b-3xl flex flex-col items-center py-6 mb-6 relative">
+            <AcademicCapIcon className="h-12 w-12 text-sky-500 mb-2" />
+            {/* Progress dots */}
+            <div className="flex gap-1 mb-2">
+              <span className="w-2 h-2 bg-gray-400 rounded-full inline-block" />
+              <span className="w-2 h-2 bg-gray-400 rounded-full inline-block" />
+              <span className="w-2 h-2 bg-gray-400 rounded-full inline-block" />
+              <span className="w-2 h-2 bg-gray-400 rounded-full inline-block" />
+              <span className="w-2 h-2 bg-gray-800 rounded-full inline-block" />
+              {/* Current step */}
+            </div>
+            <h1 className="text-xl font-bold text-gray-900 mb-2 text-center px-4">
+              Knowledge & Community
+            </h1>
+          </div>
+          {/* Form Fields */}
+          <div className="w-full flex flex-col px-4">
+            <div className="mb-4">
+              <label className="block text-gray-800 font-medium mb-2">
+                Would you be open to mentoring someone with your visa type?
+              </label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  className={`px-6 py-3 rounded-full font-semibold text-white ${
+                    form.mentorshipInterest === 'yes'
+                      ? 'bg-sky-400'
+                      : 'bg-sky-200'
+                  } focus:outline-none`}
+                  onClick={() =>
+                    setForm({ ...form, mentorshipInterest: 'yes' })
+                  }
+                >
+                  Yes
+                </button>
+                <button
+                  type="button"
+                  className={`px-6 py-3 rounded-full font-semibold border-2 ${
+                    form.mentorshipInterest === 'no'
+                      ? 'border-sky-400 text-sky-400'
+                      : 'border-gray-300 text-gray-800'
+                  } bg-white focus:outline-none`}
+                  onClick={() => setForm({ ...form, mentorshipInterest: 'no' })}
+                >
+                  No
+                </button>
+              </div>
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-800 font-medium mb-2">
+                Do you know any good online job boards or agencies?
+              </label>
+              <input
+                name="jobBoards"
+                placeholder="List job boards or agencies"
+                value={form.jobBoards}
+                onChange={(e) =>
+                  setForm({ ...form, jobBoards: e.target.value })
+                }
+                className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-sky-300 mb-4"
+              />
+            </div>
+            <div className="mb-6">
+              <label className="block text-gray-800 font-medium mb-2">
+                What advice would you give someone starting their visa journey?
+              </label>
+              <textarea
+                name="visaAdvice"
+                placeholder="Share your advice"
+                value={form.visaAdvice}
+                onChange={(e) =>
+                  setForm({ ...form, visaAdvice: e.target.value })
+                }
+                className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-sky-300 mb-4 min-h-[80px]"
+              />
             </div>
           </div>
-          <div className="mb-4">
-            <label className="block text-gray-800 font-medium mb-2">
-              Do you know any good online job boards or agencies?
-            </label>
-            <input
-              name="jobBoards"
-              placeholder="List job boards or agencies"
-              value={form.jobBoards}
-              onChange={(e) => setForm({ ...form, jobBoards: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-sky-300 mb-4"
-            />
-          </div>
-          <div className="mb-6">
-            <label className="block text-gray-800 font-medium mb-2">
-              What advice would you give someone starting their visa journey?
-            </label>
-            <textarea
-              name="visaAdvice"
-              placeholder="Share your advice"
-              value={form.visaAdvice}
-              onChange={(e) => setForm({ ...form, visaAdvice: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-sky-300 mb-4 min-h-[80px]"
-            />
-          </div>
+          <Button
+            variant="primary"
+            className="w-full max-w-md mb-2 mx-4"
+            onClick={handleContinue}
+            disabled={loading}
+          >
+            Save & Continue
+          </Button>
+          {apiError && (
+            <div className="text-red-500 text-center mt-2">{apiError}</div>
+          )}
+          <button
+            className="text-gray-500 underline text-base mt-2"
+            onClick={() => navigate('/dashboard')}
+          >
+            Skip and finish later
+          </button>
         </div>
-        <Button
-          variant="primary"
-          className="w-full max-w-md mb-2 mx-4"
-          onClick={handleContinue}
-          disabled={loading}
-        >
-          Save & Continue
-        </Button>
-        {apiError && (
-          <div className="text-red-500 text-center mt-2">{apiError}</div>
-        )}
-        <button
-          className="text-gray-500 underline text-base mt-2"
-          onClick={() => navigate('/dashboard')}
-        >
-          Skip and finish later
-        </button>
-      </div>
+      )}
     </div>
   );
 };

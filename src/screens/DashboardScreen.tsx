@@ -185,11 +185,6 @@ const DashboardScreen: React.FC = () => {
                 <li>• Professional grow</li>
               </ul>
             </div>
-
-            {/* Mobile Illustration Placeholder */}
-            <div className="hidden md:block absolute top-4 right-4 text-2xl opacity-20">
-              🌙☁️💤⭐
-            </div>
           </div>
 
           {/* Social Portal Card */}
@@ -213,11 +208,6 @@ const DashboardScreen: React.FC = () => {
                 <li>• Weekend meetups</li>
                 <li>• Trips, tips and advice</li>
               </ul>
-            </div>
-
-            {/* Mobile Illustration Placeholder */}
-            <div className="hidden md:block absolute top-4 right-4 text-2xl opacity-20">
-              🌙☁️💤⭐
             </div>
           </div>
         </div>

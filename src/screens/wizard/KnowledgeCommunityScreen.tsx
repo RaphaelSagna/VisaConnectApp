@@ -1,16 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import Button from '../../components/Button';
 import { useNavigate } from 'react-router-dom';
 import { AcademicCapIcon } from '@heroicons/react/24/outline';
+import { Combobox, Transition } from '@headlessui/react';
+import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
+import { JOB_BOARDS } from '../../data/commonOptions';
 import { apiPatch } from '../../api';
 import { useUserStore } from '../../stores/userStore';
 
 const KnowledgeCommunityScreen: React.FC = () => {
   const [form, setForm] = useState({
     mentorshipInterest: 'no' as 'yes' | 'no',
-    jobBoards: '',
+    jobBoards: [] as string[],
     visaAdvice: '',
   });
+  const [jobBoardsQuery, setJobBoardsQuery] = useState('');
+  const [jobBoardsOpen, setJobBoardsOpen] = useState(false);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
@@ -23,7 +28,7 @@ const KnowledgeCommunityScreen: React.FC = () => {
     if (user) {
       setForm({
         mentorshipInterest: user.mentorship_interest ? 'yes' : 'no',
-        jobBoards: user.job_boards?.join(', ') || '',
+        jobBoards: user.job_boards || [],
         visaAdvice: user.visa_advice || '',
       });
     }
@@ -45,7 +50,7 @@ const KnowledgeCommunityScreen: React.FC = () => {
       // Update user profile with knowledge & community information
       const updateData = {
         mentorship_interest: form.mentorshipInterest === 'yes',
-        job_boards: form.jobBoards ? [form.jobBoards] : [],
+        job_boards: form.jobBoards,
         visa_advice: form.visaAdvice,
         profile_answers: {
           knowledge_community: {
@@ -162,15 +167,183 @@ const KnowledgeCommunityScreen: React.FC = () => {
               <label className="block text-gray-800 font-medium mb-2">
                 Do you know any good online job boards or agencies?
               </label>
-              <input
-                name="jobBoards"
-                placeholder="List job boards or agencies"
+              <Combobox
                 value={form.jobBoards}
-                onChange={(e) =>
-                  setForm({ ...form, jobBoards: e.target.value })
-                }
-                className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-sky-300 mb-4"
-              />
+                onChange={(vals: string[]) => {
+                  // Handle custom values that start with "ADD_CUSTOM:"
+                  const processedVals = vals.map((val) => {
+                    if (val.startsWith('ADD_CUSTOM:')) {
+                      return val.replace('ADD_CUSTOM:', '');
+                    }
+                    return val;
+                  });
+
+                  setForm({ ...form, jobBoards: processedVals });
+                  setJobBoardsQuery('');
+                  setJobBoardsOpen(false);
+                }}
+                onClose={() => {
+                  // Ensure dropdown closes when losing focus
+                  setJobBoardsOpen(false);
+                }}
+                onBlur={() => {
+                  // Additional safety to close dropdown
+                  setTimeout(() => setJobBoardsOpen(false), 100);
+                }}
+                multiple
+                as={React.Fragment}
+                open={jobBoardsOpen}
+                onOpenChange={setJobBoardsOpen}
+              >
+                <div className="relative">
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {form.jobBoards.map((jobBoard) => (
+                      <span
+                        key={jobBoard}
+                        className="inline-flex items-center bg-sky-100 text-sky-800 rounded-full px-3 py-1 text-sm font-medium"
+                      >
+                        {jobBoard}
+                        <button
+                          type="button"
+                          className="ml-2 text-sky-400 hover:text-sky-700 focus:outline-none"
+                          onClick={() =>
+                            setForm({
+                              ...form,
+                              jobBoards: form.jobBoards.filter(
+                                (jb) => jb !== jobBoard
+                              ),
+                            })
+                          }
+                          aria-label={`Remove ${jobBoard}`}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <Combobox.Input
+                    className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-sky-300 mb-4"
+                    displayValue={() => jobBoardsQuery}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      setJobBoardsQuery(e.target.value);
+                      setJobBoardsOpen(true);
+                    }}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                      if (
+                        e.key === 'Enter' &&
+                        jobBoardsQuery.trim() &&
+                        !form.jobBoards.includes(jobBoardsQuery.trim())
+                      ) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const customValue = jobBoardsQuery.trim();
+
+                        // Add the custom value to the form
+                        setForm({
+                          ...form,
+                          jobBoards: [...form.jobBoards, customValue],
+                        });
+
+                        // Clear the input and close dropdown immediately
+                        setJobBoardsQuery('');
+                        setJobBoardsOpen(false);
+
+                        // Force the input to clear by updating the display value
+                        e.currentTarget.value = '';
+                      }
+                    }}
+                    placeholder="Enter job boards or agencies"
+                  />
+                  <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <ChevronUpDownIcon
+                      className="h-5 w-5 text-gray-400"
+                      aria-hidden="true"
+                    />
+                  </Combobox.Button>
+                  <Transition
+                    as={Fragment}
+                    leave="transition ease-in duration-100"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                  >
+                    <Combobox.Options className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-xl py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none">
+                      {/* Always show custom add option if user typed something not already selected */}
+                      {jobBoardsQuery.trim() &&
+                        !form.jobBoards.includes(jobBoardsQuery.trim()) && (
+                          <Combobox.Option
+                            value={`ADD_CUSTOM:${jobBoardsQuery.trim()}`}
+                            className={({ active }: { active: boolean }) =>
+                              `cursor-pointer select-none relative py-3 px-4 ${
+                                active
+                                  ? 'bg-green-100 text-green-900'
+                                  : 'text-green-700'
+                              }`
+                            }
+                          >
+                            <span className="block truncate font-medium">
+                              + Add "{jobBoardsQuery.trim()}"
+                            </span>
+                          </Combobox.Option>
+                        )}
+
+                      {/* Show filtered predefined options */}
+                      {JOB_BOARDS.filter(
+                        (jobBoard) =>
+                          jobBoard
+                            .toLowerCase()
+                            .includes(jobBoardsQuery.toLowerCase()) &&
+                          !form.jobBoards.includes(jobBoard)
+                      ).map((jobBoard) => (
+                        <Combobox.Option
+                          key={jobBoard}
+                          value={jobBoard}
+                          className={({ active }: { active: boolean }) =>
+                            `cursor-pointer select-none relative py-3 px-4 ${
+                              active
+                                ? 'bg-sky-100 text-sky-900'
+                                : 'text-gray-900'
+                            }`
+                          }
+                        >
+                          {({ selected }: { selected: boolean }) => (
+                            <>
+                              <span
+                                className={`block truncate ${
+                                  selected ? 'font-semibold' : 'font-normal'
+                                }`}
+                              >
+                                {jobBoard}
+                              </span>
+                              {selected ? (
+                                <span className="absolute inset-y-0 right-4 flex items-center text-sky-600">
+                                  <CheckIcon
+                                    className="h-5 w-5"
+                                    aria-hidden="true"
+                                  />
+                                </span>
+                              ) : null}
+                            </>
+                          )}
+                        </Combobox.Option>
+                      ))}
+
+                      {/* Show "No results found" only if no custom add option and no predefined options */}
+                      {!jobBoardsQuery.trim() &&
+                        JOB_BOARDS.filter(
+                          (jobBoard) =>
+                            jobBoard
+                              .toLowerCase()
+                              .includes(jobBoardsQuery.toLowerCase()) &&
+                            !form.jobBoards.includes(jobBoard)
+                        ).length === 0 && (
+                          <div className="cursor-default select-none py-3 px-4 text-gray-700">
+                            No results found.
+                          </div>
+                        )}
+                    </Combobox.Options>
+                  </Transition>
+                </div>
+              </Combobox>
             </div>
             <div className="mb-6">
               <label className="block text-gray-800 font-medium mb-2">

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import Button from '../components/Button';
 import { useNavigate } from 'react-router-dom';
-import CityAutocomplete from '../components/CityAutocomplete';
+import AutoComplete from '../components/AutoComplete';
+import { US_CITIES } from '../data/usCities';
 import { apiPostPublic } from '../api';
 import logo from '../assets/images/logo.png';
 
@@ -280,14 +281,17 @@ const CreateAccountPage: React.FC = () => {
                   </span>
                 )}
               </div>
-              <CityAutocomplete
+              <AutoComplete
+                label="Current Location"
                 value={
                   form.current_location.city && form.current_location.state
                     ? `${form.current_location.city}, ${form.current_location.state}`
                     : ''
                 }
-                onChange={(value) => {
-                  const [city, state] = value.split(', ').map((s) => s.trim());
+                onChange={(value: string) => {
+                  const [city, state] = value
+                    .split(', ')
+                    .map((s: string) => s.trim());
                   setForm({
                     ...form,
                     current_location: {
@@ -297,6 +301,7 @@ const CreateAccountPage: React.FC = () => {
                     },
                   });
                 }}
+                options={US_CITIES.map((city) => city.fullName)}
                 placeholder="Location: City, state"
                 required
               />

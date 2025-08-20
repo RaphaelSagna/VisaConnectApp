@@ -1,9 +1,11 @@
 import React, { useState, Fragment, useEffect } from 'react';
 import Button from '../../components/Button';
+import AutoComplete from '../../components/AutoComplete';
 import { useNavigate } from 'react-router-dom';
 import { Listbox, Transition, Combobox } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import countries from 'world-countries';
+import { US_CITIES } from '../../data/usCities';
 import { apiPatch } from '../../api';
 import { useUserStore } from '../../stores/userStore';
 
@@ -385,17 +387,15 @@ const BackgroundScreen: React.FC = () => {
               </Combobox>
             </div>
 
-            <div className="mb-4">
-              <label className="block text-gray-800 font-medium mb-2">
-                Where else have you worked in the USA?
-              </label>
-              <Input
-                name="workHistory"
-                placeholder="Enter your work history"
-                value={form.workHistory}
-                onChange={handleChange}
-              />
-            </div>
+            <AutoComplete
+              label="Where else have you worked in the USA?"
+              value={form.workHistory}
+              onChange={(value: string) =>
+                setForm({ ...form, workHistory: value })
+              }
+              options={US_CITIES.map((city) => city.fullName)}
+              placeholder="Enter city and state where you worked"
+            />
 
             <div className="mb-4">
               <label className="block text-gray-800 font-medium mb-2">

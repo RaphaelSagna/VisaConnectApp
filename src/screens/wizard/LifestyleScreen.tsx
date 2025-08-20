@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import Button from '../../components/Button';
 import { useNavigate } from 'react-router-dom';
 import { HandThumbUpIcon } from '@heroicons/react/24/outline';
+import { Combobox, Transition } from '@headlessui/react';
+import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
+import { COMMON_HOBBIES } from '../../data/commonOptions';
 import { apiPatch } from '../../api';
 import { useUserStore } from '../../stores/userStore';
 
@@ -19,12 +22,14 @@ Input.displayName = 'Input';
 
 const LifestyleScreen: React.FC = () => {
   const [form, setForm] = useState({
-    hobbies: '',
+    hobbies: [] as string[],
     favoriteState: '',
     outings: '',
     hasCar: 'yes' as 'yes' | 'no',
     willingToDrive: 'no' as 'yes' | 'no',
   });
+  const [hobbiesQuery, setHobbiesQuery] = useState('');
+  const [hobbiesOpen, setHobbiesOpen] = useState(false);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
@@ -36,7 +41,7 @@ const LifestyleScreen: React.FC = () => {
   useEffect(() => {
     if (user) {
       setForm({
-        hobbies: user.hobbies?.join(', ') || '',
+        hobbies: user.hobbies || [],
         favoriteState: user.favorite_state || '',
         outings: user.preferred_outings?.join(', ') || '',
         hasCar: user.has_car ? 'yes' : 'no',
@@ -71,14 +76,14 @@ const LifestyleScreen: React.FC = () => {
 
       // Update user profile with lifestyle information
       const updateData = {
-        hobbies: form.hobbies ? [form.hobbies] : [],
+        hobbies: form.hobbies,
         favorite_state: form.favoriteState,
         preferred_outings: form.outings ? [form.outings] : [],
         has_car: form.hasCar === 'yes',
         offers_rides: form.willingToDrive === 'yes',
         profile_answers: {
           lifestyle_personality: {
-            hobbies: form.hobbies ? [form.hobbies] : [],
+            hobbies: form.hobbies,
             favoriteState: form.favoriteState,
             outings: form.outings ? [form.outings] : [],
             hasCar: form.hasCar,
@@ -162,12 +167,167 @@ const LifestyleScreen: React.FC = () => {
               <label className="block text-gray-800 font-medium mb-2">
                 What are your hobbies and interests?
               </label>
-              <Input
-                name="hobbies"
-                placeholder="Enter your hobbies"
+              <Combobox
                 value={form.hobbies}
-                onChange={handleChange}
-              />
+                onChange={(vals: string[]) => {
+                  // Handle custom values that start with "ADD_CUSTOM:"
+                  const processedVals = vals.map((val) => {
+                    if (val.startsWith('ADD_CUSTOM:')) {
+                      return val.replace('ADD_CUSTOM:', '');
+                    }
+                    return val;
+                  });
+
+                  setForm({ ...form, hobbies: processedVals });
+                  setHobbiesQuery('');
+                  setHobbiesOpen(false);
+                }}
+                onClose={() => {
+                  // Ensure dropdown closes when losing focus
+                  setHobbiesOpen(false);
+                }}
+                onBlur={() => {
+                  // Additional safety to close dropdown
+                  setTimeout(() => setHobbiesOpen(false), 100);
+                }}
+                multiple
+                as={React.Fragment}
+                open={hobbiesOpen}
+                onOpenChange={setHobbiesOpen}
+              >
+                <div className="relative">
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {form.hobbies.map((hobby) => (
+                      <span
+                        key={hobby}
+                        className="inline-flex items-center bg-sky-100 text-sky-800 rounded-full px-3 py-1 text-sm font-medium"
+                      >
+                        {hobby}
+                        <button
+                          type="button"
+                          className="ml-2 text-sky-400 hover:text-sky-700 focus:outline-none"
+                          onClick={() =>
+                            setForm({
+                              ...form,
+                              hobbies: form.hobbies.filter((h) => h !== hobby),
+                            })
+                          }
+                          aria-label={`Remove ${hobby}`}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <Combobox.Input
+                    className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-sky-300 mb-4"
+                    displayValue={() => hobbiesQuery}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      setHobbiesQuery(e.target.value);
+                      setHobbiesOpen(true);
+                    }}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                      if (
+                        e.key === 'Enter' &&
+                        hobbiesQuery.trim() &&
+                        !form.hobbies.includes(hobbiesQuery.trim())
+                      ) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const customValue = hobbiesQuery.trim();
+
+                        // Add the custom value to the form
+                        setForm({
+                          ...form,
+                          hobbies: [...form.hobbies, customValue],
+                        });
+
+                        // Clear the input and close dropdown immediately
+                        setHobbiesQuery('');
+                        setHobbiesOpen(false);
+
+                        // Force the input to clear by updating the display value
+                        e.currentTarget.value = '';
+                      }
+                    }}
+                    placeholder="Enter hobbies and interests"
+                  />
+                  <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <ChevronUpDownIcon
+                      className="h-5 w-5 text-gray-400"
+                      aria-hidden="true"
+                    />
+                  </Combobox.Button>
+                  <Transition
+                    as={Fragment}
+                    leave="transition ease-in duration-100"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                  >
+                    <Combobox.Options className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-xl py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none">
+                      {/* Always show custom add option if user typed something not already selected */}
+                      {hobbiesQuery.trim() &&
+                        !form.hobbies.includes(hobbiesQuery.trim()) && (
+                          <Combobox.Option
+                            value={`ADD_CUSTOM:${hobbiesQuery.trim()}`}
+                            className={({ active }: { active: boolean }) =>
+                              `cursor-pointer select-none relative py-3 px-4 ${
+                                active
+                                  ? 'bg-green-100 text-green-900'
+                                  : 'text-green-700'
+                              }`
+                            }
+                          >
+                            <span className="block truncate font-medium">
+                              + Add "{hobbiesQuery.trim()}"
+                            </span>
+                          </Combobox.Option>
+                        )}
+
+                      {/* Show filtered predefined options */}
+                      {COMMON_HOBBIES.filter(
+                        (hobby) =>
+                          hobby
+                            .toLowerCase()
+                            .includes(hobbiesQuery.toLowerCase()) &&
+                          !form.hobbies.includes(hobby)
+                      ).map((hobby) => (
+                        <Combobox.Option
+                          key={hobby}
+                          value={hobby}
+                          className={({ active }: { active: boolean }) =>
+                            `cursor-pointer select-none relative py-3 px-4 ${
+                              active
+                                ? 'bg-sky-100 text-sky-900'
+                                : 'text-gray-900'
+                            }`
+                          }
+                        >
+                          {({ selected }: { selected: boolean }) => (
+                            <>
+                              <span
+                                className={`block truncate ${
+                                  selected ? 'font-semibold' : 'font-normal'
+                                }`}
+                              >
+                                {hobby}
+                              </span>
+                              {selected ? (
+                                <span className="absolute inset-y-0 right-4 flex items-center text-sky-600">
+                                  <CheckIcon
+                                    className="h-5 w-5"
+                                    aria-hidden="true"
+                                  />
+                                </span>
+                              ) : null}
+                            </>
+                          )}
+                        </Combobox.Option>
+                      ))}
+                    </Combobox.Options>
+                  </Transition>
+                </div>
+              </Combobox>
             </div>
 
             <div className="mb-4">

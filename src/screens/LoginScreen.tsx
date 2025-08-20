@@ -9,7 +9,7 @@ import logo from '../assets/images/logo.png';
 interface LoginResponse {
   success: boolean;
   message: string;
-  data: {
+  user: {
     id: string;
     email: string;
     first_name?: string;
@@ -40,6 +40,7 @@ interface LoginResponse {
     visa_advice?: string;
     profile_answers?: Record<string, any>;
   };
+  token: string; // Firebase ID token for authenticated API calls
 }
 
 const Input = React.forwardRef<
@@ -103,35 +104,40 @@ const SignInScreen: React.FC = () => {
 
       console.log('Login response:', loginResponse); // Debug log
 
-      if (loginResponse.data) {
+      if (loginResponse.user) {
+        // Store the Firebase ID token if provided by backend
+        if (loginResponse.token) {
+          localStorage.setItem('userToken', loginResponse.token);
+        }
+
         // Create user data object
         const userData = {
-          uid: loginResponse.data.id,
-          email: loginResponse.data.email,
-          first_name: loginResponse.data.first_name || '',
-          last_name: loginResponse.data.last_name || '',
-          visa_type: loginResponse.data.visa_type || '',
-          current_location: loginResponse.data.current_location || {},
-          occupation: loginResponse.data.occupation || '',
-          employer: loginResponse.data.employer || '',
+          uid: loginResponse.user.id,
+          email: loginResponse.user.email,
+          first_name: loginResponse.user.first_name || '',
+          last_name: loginResponse.user.last_name || '',
+          visa_type: loginResponse.user.visa_type || '',
+          current_location: loginResponse.user.current_location || {},
+          occupation: loginResponse.user.occupation || '',
+          employer: loginResponse.user.employer || '',
           // Include all profile fields for completion calculation
-          nationality: loginResponse.data.nationality,
-          languages: loginResponse.data.languages || [],
-          other_us_jobs: loginResponse.data.other_us_jobs || [],
-          relationship_status: loginResponse.data.relationship_status,
-          hobbies: loginResponse.data.hobbies || [],
-          favorite_state: loginResponse.data.favorite_state,
-          preferred_outings: loginResponse.data.preferred_outings || [],
-          has_car: loginResponse.data.has_car,
-          offers_rides: loginResponse.data.offers_rides,
-          road_trips: loginResponse.data.road_trips,
-          favorite_place: loginResponse.data.favorite_place,
-          travel_tips: loginResponse.data.travel_tips,
-          willing_to_guide: loginResponse.data.willing_to_guide,
-          mentorship_interest: loginResponse.data.mentorship_interest,
-          job_boards: loginResponse.data.job_boards || [],
-          visa_advice: loginResponse.data.visa_advice,
-          profile_answers: loginResponse.data.profile_answers || {},
+          nationality: loginResponse.user.nationality,
+          languages: loginResponse.user.languages || [],
+          other_us_jobs: loginResponse.user.other_us_jobs || [],
+          relationship_status: loginResponse.user.relationship_status,
+          hobbies: loginResponse.user.hobbies || [],
+          favorite_state: loginResponse.user.favorite_state,
+          preferred_outings: loginResponse.user.preferred_outings || [],
+          has_car: loginResponse.user.has_car,
+          offers_rides: loginResponse.user.offers_rides,
+          road_trips: loginResponse.user.road_trips,
+          favorite_place: loginResponse.user.favorite_place,
+          travel_tips: loginResponse.user.travel_tips,
+          willing_to_guide: loginResponse.user.willing_to_guide,
+          mentorship_interest: loginResponse.user.mentorship_interest,
+          job_boards: loginResponse.user.job_boards || [],
+          visa_advice: loginResponse.user.visa_advice,
+          profile_answers: loginResponse.user.profile_answers || {},
         };
 
         // Store in Zustand store (this also updates localStorage for backward compatibility)

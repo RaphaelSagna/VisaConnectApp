@@ -7,6 +7,7 @@ export interface AuthResponse {
   success: boolean;
   message: string;
   user: User;
+  token?: string; // Firebase ID token for authenticated API calls
 }
 
 export interface LoginData {
@@ -110,9 +111,40 @@ export class AuthService {
       }
 
       const authData = (await verifyPasswordResponse.json()) as any;
+      console.log(
+        'Firebase Auth REST API response:',
+        JSON.stringify(authData, null, 2)
+      );
+
       const firebaseUid = authData.localId;
 
-      // 2. Get user profile from PostgreSQL
+      // 2. Generate a custom token using Firebase Admin SDK
+      const customToken = await admin.auth().createCustomToken(firebaseUid);
+
+      // 3. Exchange custom token for ID token
+      const exchangeResponse = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${config.firebase.webApiKey}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            token: customToken,
+            returnSecureToken: true,
+          }),
+        }
+      );
+
+      if (!exchangeResponse.ok) {
+        const errorData = (await exchangeResponse.json()) as any;
+        console.error('Token exchange failed:', errorData);
+        throw new Error('Authentication failed');
+      }
+
+      const exchangeData = (await exchangeResponse.json()) as any;
+      const idToken = exchangeData.idToken; // Firebase ID token
+      // 4. Get user profile from PostgreSQL
       const userProfile = await userService.getUserById(firebaseUid);
 
       if (!userProfile) {
@@ -122,6 +154,7 @@ export class AuthService {
           success: true,
           message: 'Login successful',
           user: syncedProfile,
+          token: idToken,
         };
       }
 
@@ -129,6 +162,7 @@ export class AuthService {
         success: true,
         message: 'Login successful',
         user: userProfile,
+        token: idToken,
       };
     } catch (error: any) {
       if (error.message === 'Invalid email or password') {

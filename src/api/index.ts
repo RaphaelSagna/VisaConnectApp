@@ -3,12 +3,26 @@ import config from '../config';
 // Backend API base URL
 const API_BASE_URL = config.apiUrl;
 
-export const getToken = () => localStorage.getItem('userToken');
+export const getToken = () => {
+  const token = localStorage.getItem('userToken');
+  console.log(
+    'Getting token from localStorage:',
+    token ? `${token.substring(0, 20)}...` : 'null'
+  );
+  return token;
+};
 
-const defaultHeaders = () => ({
-  'Content-Type': 'application/json',
-  Authorization: `Bearer ${getToken()}`,
-});
+const defaultHeaders = () => {
+  const token = getToken();
+  console.log(
+    'Setting Authorization header with token:',
+    token ? 'Bearer [token]' : 'No token'
+  );
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
+};
 
 // Headers without authentication for registration/login
 const publicHeaders = () => ({

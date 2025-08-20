@@ -92,7 +92,8 @@ export default function authApi(app: Express) {
       res.json({
         success: true,
         message: result.message || 'Login successful',
-        data: result.user,
+        user: result.user,
+        token: result.token,
       });
     } catch (error: any) {
       console.error('Login error:', error);

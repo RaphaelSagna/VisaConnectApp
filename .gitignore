@@ -22,6 +22,7 @@
 
 # Firebase
 server/firebaseServiceAccount.json
+server/firebase-stage.json
 
 # Build artifacts
 /server/dist

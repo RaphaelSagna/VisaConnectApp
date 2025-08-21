@@ -66,7 +66,7 @@ const SignInScreen: React.FC = () => {
   const navigate = useNavigate();
 
   // Zustand store
-  const { setUser, setLoading } = useUserStore();
+  const { setUser } = useUserStore();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });

@@ -6,18 +6,9 @@ import NavigationBar from '../components/NavigationBar';
 import { useUserStore } from '../stores/userStore';
 
 const DashboardScreen: React.FC = () => {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const { user, clearUser, isLoading, getCompletion } = useUserStore();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const navigate = useNavigate();
-
-  // Zustand store
-  const {
-    user,
-    isAuthenticated,
-    isLoading,
-    getFullName,
-    getLocation,
-    getCompletion,
-  } = useUserStore();
 
   // Get completion data from store
   const completion = getCompletion();
@@ -35,13 +26,13 @@ const DashboardScreen: React.FC = () => {
     }
   }, [user]);
 
-  const handleMenuClick = () => setMenuOpen(true);
-  const handleOverlayClick = () => setMenuOpen(false);
+  const handleMenuClick = () => setIsDrawerOpen(true);
+  const handleOverlayClick = () => setIsDrawerOpen(false);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col relative">
       <DrawerMenu
-        open={menuOpen}
+        open={isDrawerOpen}
         onClose={handleOverlayClick}
         navigate={navigate}
         highlight={undefined}

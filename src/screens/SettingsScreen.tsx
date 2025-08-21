@@ -10,7 +10,6 @@ import {
   InformationCircleIcon,
   BriefcaseIcon,
   CameraIcon,
-  UsersIcon,
   ArrowRightIcon,
   EnvelopeIcon,
   ArrowLeftOnRectangleIcon,

@@ -91,15 +91,8 @@ const BackgroundScreen: React.FC = () => {
     }
   }, [user, navigate]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleStayInUSChange = (value: 'yes' | 'no') => {
-    setForm({ ...form, stayInUS: value });
-  };
-
-  const handleContinue = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
     setApiError('');
     try {
@@ -134,6 +127,10 @@ const BackgroundScreen: React.FC = () => {
       setApiError(err.message || 'Failed to save background info');
       setLoading(false);
     }
+  };
+
+  const handleStayInUSChange = (value: 'yes' | 'no') => {
+    setForm({ ...form, stayInUS: value });
   };
 
   return (
@@ -499,7 +496,7 @@ const BackgroundScreen: React.FC = () => {
           <Button
             variant="primary"
             className="w-full max-w-md mb-2 mx-4"
-            onClick={handleContinue}
+            onClick={handleSubmit}
             disabled={loading}
           >
             Save & Continue

@@ -1,0 +1,103 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - feature/*
+      - bugfix/*
+      - hotfix/*
+  pull_request:
+    branches:
+      - main
+      - develop
+
+env:
+  HEROKU_APP_NAME: visa-connect-stage
+  HEROKU_APP_NAME_PROD: visa-connect
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref != 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run tests
+        run: |
+          yarn test --watchAll=false --coverage
+          yarn lint
+
+      - name: Build application
+        run: yarn build
+
+      - name: Deploy to Heroku Staging
+        uses: akhileshns/heroku-deploy@v3.12.14
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ env.HEROKU_APP_NAME }}
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          branch: ${{ github.ref }}
+
+      - name: Run health check
+        run: |
+          sleep 30
+          curl -f https://${{ env.HEROKU_APP_NAME }}-113080622b06.herokuapp.com/api/health || exit 1
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: deploy-staging
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run tests
+        run: |
+          yarn test --watchAll=false --coverage
+          yarn lint
+
+      - name: Build application
+        run: yarn build
+
+      - name: Deploy to Heroku Production
+        uses: akhileshns/heroku-deploy@v3.12.14
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ env.HEROKU_APP_NAME_PROD }}
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          branch: main
+
+      - name: Run production health check
+        run: |
+          sleep 30
+          curl -f https://${{ env.HEROKU_APP_NAME_PROD }}.herokuapp.com/api/health || exit 1
+
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "🚀 Production deployment successful!"
+          echo "App: https://${{ env.HEROKU_APP_NAME_PROD }}.herokuapp.com"

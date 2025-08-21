@@ -15,6 +15,8 @@ on:
 env:
   HEROKU_APP_NAME: visa-connect
   HEROKU_APP_NAME_STAGING: visa-connect-stage
+  PRODUCTION_URL: visaconnectus.com
+  STAGING_URL: staging.visaconnectus.com
 
 jobs:
   deploy-production:
@@ -34,10 +36,11 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      - name: Run linting
+        run: yarn lint
+
       - name: Run tests
-        run: |
-          yarn test --watchAll=false --coverage
-          yarn lint
+        run: yarn test --watchAll=false --coverage
 
       - name: Build application
         run: yarn build
@@ -59,5 +62,5 @@ jobs:
         if: success()
         run: |
           echo "🚀 Production deployment successful!"
-          echo "App: https://${{ env.HEROKU_APP_NAME }}.herokuapp.com"
-          echo "Staging: https://${{ env.HEROKU_APP_NAME_STAGING }}-113080622b06.herokuapp.com"
+          echo "Production: https://${{ env.PRODUCTION_URL }}"
+          echo "Staging: https://${{ env.STAGING_URL }}"

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Button from '../components/Button';
 import { useNavigate } from 'react-router-dom';
 import DrawerMenu from '../components/DrawerMenu';
+import NavigationBar from '../components/NavigationBar';
 import { useUserStore } from '../stores/userStore';
 
 const DashboardScreen: React.FC = () => {
@@ -45,36 +46,10 @@ const DashboardScreen: React.FC = () => {
         navigate={navigate}
         highlight={undefined}
       />
-      {/* Navigation Bar */}
-      <div className="bg-white px-4 md:px-6 py-2 md:py-4 border-b shadow-sm">
-        <div className="flex items-center justify-between">
-          <button className="text-2xl text-gray-600" onClick={handleMenuClick}>
-            ☰
-          </button>
-          <div className="flex items-center gap-2 md:gap-3">
-            <span className="text-2xl md:text-3xl font-bold text-blue-600">
-              V
-            </span>
-            <span className="font-bold text-lg md:text-xl text-gray-800">
-              VisaConnect
-            </span>
-          </div>
-          {/* Desktop Navigation - Hidden on mobile */}
-          <div className="hidden md:flex items-center gap-4">
-            <span className="text-gray-600">Dashboard</span>
-            <span className="text-gray-500">Work</span>
-            <span className="text-gray-500">Social</span>
-            <span className="text-gray-500">Chat</span>
-            <span className="text-gray-500">Settings</span>
-            <span className="text-gray-500">Contact</span>
-            <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-              <span className="text-gray-600 text-sm">👤</span>
-            </div>
-          </div>
-          {/* Mobile Spacer */}
-          <div className="w-6 md:hidden"></div>
-        </div>
-      </div>
+
+      {/* Shared Navigation Bar */}
+      <NavigationBar currentPage="dashboard" onMenuClick={handleMenuClick} />
+
       {isLoading && (
         <div className="flex-1 flex items-center justify-center">
           <svg

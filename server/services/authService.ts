@@ -180,14 +180,15 @@ export class AuthService {
       const userProfile = await userService.getUserById(firebaseUid);
 
       if (!userProfile) {
-        // User exists in Firebase but not in PostgreSQL - sync them
-        const syncedProfile = await this.syncUserFromFirebase(firebaseUid);
-        return {
-          success: true,
-          message: 'Login successful',
-          user: syncedProfile,
-          token: idToken,
-        };
+        // User exists in Firebase but not in PostgreSQL - this shouldn't happen
+        // If it does, the user needs to complete registration or there's a data inconsistency
+        console.error(
+          'User exists in Firebase but not in PostgreSQL. UID:',
+          firebaseUid
+        );
+        throw new Error(
+          'Account incomplete. Please complete your registration or contact support.'
+        );
       }
 
       return {
@@ -197,33 +198,11 @@ export class AuthService {
         token: idToken,
       };
     } catch (error: any) {
+      console.log('authService.loginUser ERROR', error);
       if (error.message === 'Invalid email or password') {
         throw error;
       }
       throw new Error('Authentication failed');
-    }
-  }
-
-  // Sync user from Firebase to PostgreSQL (for existing users)
-  async syncUserFromFirebase(firebaseUid: string): Promise<User> {
-    try {
-      const firebaseUser = await admin.auth().getUser(firebaseUid);
-
-      // Create basic profile in PostgreSQL
-      const userProfile = await userService.createUser({
-        id: firebaseUid, // Use Firebase UID as PostgreSQL primary key
-        email: firebaseUser.email || '',
-        first_name: firebaseUser.displayName
-          ? firebaseUser.displayName.split(' ')[0]
-          : undefined,
-        last_name: firebaseUser.displayName
-          ? firebaseUser.displayName.split(' ').slice(1).join(' ')
-          : undefined,
-      });
-
-      return userProfile;
-    } catch (error) {
-      throw new Error('Failed to sync user profile');
     }
   }
 

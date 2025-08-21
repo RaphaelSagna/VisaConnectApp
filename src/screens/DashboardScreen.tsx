@@ -6,7 +6,7 @@ import NavigationBar from '../components/NavigationBar';
 import { useUserStore } from '../stores/userStore';
 
 const DashboardScreen: React.FC = () => {
-  const { user, clearUser, isLoading, getCompletion } = useUserStore();
+  const { user, isLoading, getCompletion } = useUserStore();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const navigate = useNavigate();
 

@@ -33,6 +33,8 @@
     "build:client": "react-scripts build",
     "build:server": "cd server && npm install && npm run build",
     "test": "react-scripts test",
+    "lint": "npx eslint src --ext .ts,.tsx,.js,.jsx",
+    "lint:fix": "npx eslint src --ext .ts,.tsx,.js,.jsx --fix",
     "eject": "react-scripts eject",
     "dev": "concurrently \"react-scripts start\" \"cd server && nodemon index.ts\"",
     "postinstall": "npm run build",

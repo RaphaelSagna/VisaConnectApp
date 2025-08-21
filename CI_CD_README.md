@@ -7,12 +7,12 @@ This document describes the automated deployment pipeline for VisaConnect, which
 ## 🔄 Deployment Flow
 
 ```
-Feature Branch → Staging → Production
-     ↓              ↓         ↓
-  Develop      visa-connect-  visa-connect
-  Feature/*    stage         (Production)
-  Bugfix/*
+Feature Branch → Staging Branch → Production
+     ↓              ↓              ↓
+  Feature/*     staging         main
+  Bugfix/*      (staging.visaconnectus.com)
   Hotfix/*
+  Develop
 ```
 
 ## 📋 Workflows
@@ -28,7 +28,18 @@ Feature Branch → Staging → Production
   - Health check
   - Comment on PR (if applicable)
 
-### 2. Staging to Production (`deploy-production.yml`)
+### 2. Staging Branch Deployment (`deploy-staging.yml`)
+
+- **Trigger**: Push to `staging` branch
+- **Target**: `visa-connect-stage` (Staging)
+- **Actions**:
+  - Run tests and linting
+  - Build application
+  - Deploy to staging
+  - Health check
+  - Comment on PR (if applicable)
+
+### 3. Staging to Production (`deploy-production.yml`)
 
 - **Trigger**: Manual workflow dispatch
 - **Target**: `visa-connect` (Production)
@@ -38,12 +49,6 @@ Feature Branch → Staging → Production
   - Deploy to production
   - Health check
   - Success notification
-
-### 3. Main Branch Deploy (`deploy-staging.yml`)
-
-- **Trigger**: Push to `main`
-- **Target**: Both staging and production
-- **Actions**: Automated deployment to both environments
 
 ## 🛠️ Setup Requirements
 
@@ -75,18 +80,25 @@ The following secrets must be configured in your GitHub repository:
 3. Push to GitHub: `git push origin feature/new-feature`
 4. **Automatically deploys to staging** 🎯
 5. Test in staging environment
-6. Create PR to merge to `main`
+6. Create PR to merge to `staging` branch
+
+### Staging Deployment
+
+1. Merge feature branch to `staging`
+2. **Automatically deploys to staging environment** 🎯
+3. Test thoroughly in staging
+4. When ready, manually trigger production deployment
 
 ### Production Deployment
 
-1. Merge feature branch to `main`
-2. **Automatically deploys to both staging and production** 🎯
-3. Or manually trigger production deployment via GitHub Actions
+1. Go to GitHub Actions → "Deploy Staging to Production"
+2. Click "Run workflow"
+3. **Manually deploys to production** 🎯
 
 ## 🔍 Environment URLs
 
-- **Staging**: https://visa-connect-stage-113080622b06.herokuapp.com
-- **Production**: https://visa-connect.herokuapp.com
+- **Staging**: https://staging.visaconnectus.com
+- **Production**: https://visaconnectus.com
 
 ## 📊 Health Checks
 
@@ -137,7 +149,7 @@ If CI/CD fails, you can deploy manually:
 
 ```bash
 # Deploy to staging
-git push heroku-stage main
+git push heroku-stage staging
 
 # Deploy to production
 git push heroku main
@@ -168,7 +180,7 @@ git push heroku main
 
 1. **Always test in staging first**
 2. **Keep feature branches small and focused**
-3. **Review PRs before merging to main**
+3. **Review PRs before merging to staging**
 4. **Monitor deployments and health checks**
 5. **Document any manual deployment steps**
 

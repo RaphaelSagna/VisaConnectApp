@@ -39,6 +39,7 @@ interface UserStore {
   // State
   user: UserData | null;
   isAuthenticated: boolean;
+  hasToken: boolean;
   isLoading: boolean;
 
   // Actions
@@ -61,10 +62,12 @@ export const useUserStore = create<UserStore>()(
       // Initialize from localStorage for backward compatibility
       init: () => {
         const userData = localStorage.getItem('userData');
-        if (userData) {
+        const userToken = localStorage.getItem('userToken');
+
+        if (userData && userToken) {
           try {
             const user = JSON.parse(userData);
-            set({ user, isAuthenticated: true });
+            set({ user, isAuthenticated: true, hasToken: true });
           } catch (error) {
             console.error(
               'Failed to parse user data from localStorage:',
@@ -76,11 +79,13 @@ export const useUserStore = create<UserStore>()(
       // Initial state
       user: null,
       isAuthenticated: false,
+      hasToken: false,
       isLoading: false,
 
       // Actions
       setUser: (user: UserData) => {
-        set({ user, isAuthenticated: true });
+        const hasToken = !!localStorage.getItem('userToken');
+        set({ user, isAuthenticated: true, hasToken });
         // Also update localStorage for backward compatibility
         localStorage.setItem('userData', JSON.stringify(user));
       },
@@ -96,7 +101,7 @@ export const useUserStore = create<UserStore>()(
       },
 
       clearUser: () => {
-        set({ user: null, isAuthenticated: false });
+        set({ user: null, isAuthenticated: false, hasToken: false });
         // Clear localStorage
         localStorage.removeItem('userData');
         localStorage.removeItem('userToken');
@@ -193,6 +198,7 @@ export const useUserStore = create<UserStore>()(
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
+        hasToken: state.hasToken,
       }), // only persist these fields
     }
   )

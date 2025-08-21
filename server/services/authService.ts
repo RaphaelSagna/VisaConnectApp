@@ -56,13 +56,50 @@ export class AuthService {
         employer: registerData.employer,
       });
 
+      // 3. Automatically authenticate the user after registration
+      const customToken = await admin
+        .auth()
+        .createCustomToken(firebaseUser.uid);
+
+      // Exchange custom token for ID token
+      const exchangeResponse = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${config.firebase.webApiKey}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            token: customToken,
+            returnSecureToken: true,
+          }),
+        }
+      );
+
+      if (!exchangeResponse.ok) {
+        console.error(
+          'Auto-login after registration failed, but user was created successfully'
+        );
+        console.error('Response status:', exchangeResponse.status);
+        console.error('Response text:', await exchangeResponse.text());
+        return {
+          success: true,
+          message: 'User registered successfully. Please log in.',
+          user: userProfile,
+        };
+      }
+
+      const exchangeData = (await exchangeResponse.json()) as any;
+      const idToken = exchangeData.idToken;
+
       // 4. Send email verification
       // await this.sendEmailVerification(firebaseUser.uid);
 
       return {
         success: true,
-        message: 'User registered successfully. Please log in.',
+        message: 'User registered and logged in successfully.',
         user: userProfile,
+        token: idToken, // Return the authentication token
       };
     } catch (error: any) {
       // If PostgreSQL creation fails, clean up Firebase user
@@ -111,11 +148,6 @@ export class AuthService {
       }
 
       const authData = (await verifyPasswordResponse.json()) as any;
-      console.log(
-        'Firebase Auth REST API response:',
-        JSON.stringify(authData, null, 2)
-      );
-
       const firebaseUid = authData.localId;
 
       // 2. Generate a custom token using Firebase Admin SDK

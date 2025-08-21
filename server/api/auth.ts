@@ -23,9 +23,9 @@ export default function authApi(app: Express) {
 
       res.status(201).json({
         success: true,
-        message:
-          result.message || 'User registered successfully. Please log in.',
+        message: result.message || 'User registered successfully.',
         data: result.user,
+        token: result.token,
       });
     } catch (error: any) {
       console.error('Registration error:', error);

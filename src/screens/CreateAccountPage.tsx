@@ -5,6 +5,7 @@ import AutoComplete from '../components/AutoComplete';
 import { US_CITIES } from '../data/usCities';
 import { apiPostPublic } from '../api';
 import logo from '../assets/images/logo.png';
+import { useUserStore } from '../stores/userStore';
 
 // Types for API responses
 interface RegisterResponse {
@@ -16,6 +17,7 @@ interface RegisterResponse {
     first_name?: string;
     last_name?: string;
   };
+  token: string; // Include token in both registration and response
 }
 
 const Input = React.forwardRef<
@@ -55,6 +57,7 @@ const CreateAccountPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState('');
   const navigate = useNavigate();
+  const { setUser } = useUserStore();
 
   const validateStep1 = () => {
     const newErrors: { [key: string]: string } = {};
@@ -132,17 +135,22 @@ const CreateAccountPage: React.FC = () => {
         }
       );
 
-      // Store user data (no token - user needs to log in)
       if (response.data) {
-        localStorage.setItem(
-          'userData',
-          JSON.stringify({
-            uid: response.data.id,
-            email: response.data.email,
-            first_name: response.data.first_name,
-            last_name: response.data.last_name,
-          })
-        );
+        // Create user data object for the store
+        const userData = {
+          uid: response.data.id,
+          email: response.data.email,
+          first_name: response.data.first_name,
+          last_name: response.data.last_name,
+          visa_type: form.visa_type,
+          current_location: form.current_location,
+          occupation: form.occupation,
+          employer: form.employer,
+        };
+
+        // Update both localStorage and user store
+        localStorage.setItem('userToken', response.token);
+        setUser(userData); // This updates the user store and sets isAuthenticated to true
       }
 
       // Navigate to account created page
@@ -289,6 +297,11 @@ const CreateAccountPage: React.FC = () => {
                     : ''
                 }
                 onChange={(value: string) => {
+                  // Add null safety to prevent split error
+                  if (!value || typeof value !== 'string') {
+                    return;
+                  }
+
                   const [city, state] = value
                     .split(', ')
                     .map((s: string) => s.trim());

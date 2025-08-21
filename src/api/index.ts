@@ -5,10 +5,6 @@ const API_BASE_URL = config.apiUrl;
 
 export const getToken = () => {
   const token = localStorage.getItem('userToken');
-  console.log(
-    'Getting token from localStorage:',
-    token ? `${token.substring(0, 20)}...` : 'null'
-  );
   return token;
 };
 

@@ -27,9 +27,12 @@ const AutoComplete: React.FC<AutoCompleteProps> = ({
 
   const filteredOptions =
     query === ''
-      ? options
-      : options.filter((option) =>
-          option.toLowerCase().includes(query.toLowerCase())
+      ? options || []
+      : (options || []).filter(
+          (option) =>
+            option &&
+            typeof option === 'string' &&
+            option.toLowerCase().includes(query.toLowerCase())
         );
 
   return (
@@ -47,9 +50,9 @@ const AutoComplete: React.FC<AutoCompleteProps> = ({
             <Combobox.Input
               className="w-full border-none py-3 pl-4 pr-10 text-base leading-5 text-gray-900 focus:ring-0"
               placeholder={placeholder}
-              displayValue={(option: string) => option}
+              displayValue={(option: string) => option || ''}
               onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                setQuery(event.target.value)
+                setQuery(event.target.value || '')
               }
               required={required}
             />

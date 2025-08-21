@@ -9,12 +9,12 @@ interface DrawerMenuProps {
 }
 
 const menuItems = [
-  { label: 'Dashboard', route: '/dashboard' },
-  { label: 'Work', route: '/work' },
-  { label: 'Social', route: '/social' },
-  { label: 'Chat', route: '/chat' },
-  { label: 'Settings', route: '/settings', highlight: true },
-  { label: 'Contact us', route: '/contact' },
+  { label: 'Dashboard', route: '/dashboard', enabled: true },
+  { label: 'Work', route: '/work', enabled: false },
+  { label: 'Social', route: '/social', enabled: false },
+  { label: 'Chat', route: '/chat', enabled: false },
+  { label: 'Settings', route: '/settings', enabled: true },
+  { label: 'Contact us', route: '/contact', enabled: false },
 ];
 
 const DrawerMenu: React.FC<DrawerMenuProps> = ({
@@ -26,14 +26,13 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
   if (!open) return null;
 
   const handleMenuItemClick = (item: (typeof menuItems)[0]) => {
-    onClose();
-    if (item.route) {
-      navigate(item.route);
+    if (item.enabled) {
+      onClose();
+      if (item.route) {
+        navigate(item.route);
+      }
     }
   };
-
-  // Only Dashboard and Settings are enabled
-  const enabledLabels = ['Dashboard', 'Settings'];
 
   return (
     <>
@@ -57,34 +56,22 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
         </div>
         {/* Menu Items */}
         <nav className="flex flex-col px-2 pt-2 pb-4">
-          {menuItems.slice(0, 5).map((item) => {
-            const enabled = enabledLabels.includes(item.label);
-            return (
-              <button
-                key={item.label}
-                className={`w-full text-left px-6 py-3 rounded transition font-medium text-base ${
-                  item.label === 'Settings' && highlight === 'settings'
+          {menuItems.map((item) => (
+            <button
+              key={item.label}
+              className={`w-full text-left px-6 py-3 rounded transition font-medium text-base ${
+                item.enabled
+                  ? item.label === 'Settings' && highlight === 'settings'
                     ? 'bg-gray-100 font-bold text-gray-900'
                     : 'text-gray-800 hover:bg-gray-50'
-                } ${item.label === 'Settings' ? 'mt-1' : ''} ${
-                  !enabled ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-                onClick={enabled ? () => handleMenuItemClick(item) : undefined}
-                disabled={!enabled}
-              >
-                {item.label}
-              </button>
-            );
-          })}
-          {/* Divider */}
-          <div className="border-t border-gray-200 my-2" />
-          {/* Contact us */}
-          <button
-            className="w-full text-left px-6 py-3 rounded transition text-gray-800 hover:bg-gray-50 font-medium text-base opacity-50 cursor-not-allowed"
-            disabled
-          >
-            Contact us
-          </button>
+                  : 'text-gray-400 opacity-50 cursor-not-allowed'
+              }`}
+              onClick={() => handleMenuItemClick(item)}
+              disabled={!item.enabled}
+            >
+              {item.label}
+            </button>
+          ))}
         </nav>
       </div>
     </>

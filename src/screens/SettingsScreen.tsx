@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DrawerMenu from '../components/DrawerMenu';
+import NavigationBar from '../components/NavigationBar';
 import ResponsiveTest from '../components/ResponsiveTest';
 import {
   UserIcon,
@@ -70,91 +71,8 @@ const SettingsScreen: React.FC = () => {
         highlight="settings"
       />
 
-      {/* Top Navigation Bar */}
-      <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Left side - Logo and Navigation */}
-            <div className="flex items-center space-x-8">
-              {/* Logo */}
-              <div className="flex items-center">
-                <span className="text-2xl font-bold text-black">V</span>
-              </div>
-
-              {/* Navigation Links - Hidden on mobile, visible on desktop */}
-              <nav className="hidden md:flex space-x-8">
-                <button
-                  onClick={() => navigate('/dashboard')}
-                  className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors"
-                >
-                  Dashboard
-                </button>
-                <button
-                  onClick={() => navigate('/work')}
-                  className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors"
-                >
-                  Work
-                </button>
-                <button
-                  onClick={() => navigate('/social')}
-                  className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors"
-                >
-                  Social
-                </button>
-                <button
-                  onClick={() => navigate('/chat')}
-                  className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors"
-                >
-                  Chat
-                </button>
-                <button
-                  onClick={() => navigate('/settings')}
-                  className="text-blue-600 hover:text-blue-700 px-3 py-2 text-sm font-medium transition-colors"
-                >
-                  Settings
-                </button>
-                <button
-                  onClick={() => navigate('/contact')}
-                  className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors"
-                >
-                  Contact
-                </button>
-              </nav>
-            </div>
-
-            {/* Right side - Mobile menu button and User avatar */}
-            <div className="flex items-center space-x-4">
-              {/* Mobile menu button */}
-              <button
-                className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                onClick={handleMenuClick}
-                aria-label="Open menu"
-              >
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              </button>
-
-              {/* User Avatar */}
-              <div className="flex items-center">
-                <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
-                  <UserIcon className="h-5 w-5 text-gray-600" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Shared Navigation Bar */}
+      <NavigationBar currentPage="settings" onMenuClick={handleMenuClick} />
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

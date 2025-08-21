@@ -10,6 +10,7 @@ on:
 
 env:
   HEROKU_APP_NAME: visa-connect-stage
+  STAGING_URL: staging.visaconnectus.com
 
 jobs:
   test-and-deploy:
@@ -61,5 +62,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `🚀 **Feature deployed to staging!**\n\n- **Branch**: \`${{ github.ref }}\`\n- **Environment**: Staging\n- **URL**: https://${{ env.HEROKU_APP_NAME }}-113080622b06.herokuapp.com\n- **Commit**: \`${{ github.sha }}\`\n\nReady for testing! 🧪`
+              body: `🚀 **Feature deployed to staging!**\n\n- **Branch**: \`${{ github.ref }}\`\n- **Environment**: Staging\n- **URL**: https://${{ env.STAGING_URL }}\n- **Commit**: \`${{ github.sha }}\`\n\nReady for testing! 🧪`
             })

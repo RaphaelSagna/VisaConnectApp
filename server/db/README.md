@@ -69,9 +69,24 @@ yarn ts-node db/init.ts
 - **visa_type**: VARCHAR(50)
 - **current_location**: JSONB {city, state, country}
 - **interests**: TEXT[] (Array of interests)
-- **profile_answers**: JSONB (All profile sections)
+- **profile_photo_url**: VARCHAR(500) (URL to profile photo)
+- **profile_photo_public_id**: VARCHAR(255) (Cloudinary public ID)
+- **bio**: TEXT (User bio/description)
 - **created_at**: TIMESTAMP DEFAULT NOW()
 - **updated_at**: TIMESTAMP DEFAULT NOW()
+
+### Businesses Table
+
+- **id**: SERIAL (Primary Key)
+- **user_id**: VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE
+- **name**: VARCHAR(255) NOT NULL (Business name)
+- **description**: TEXT (Business description)
+- **address**: TEXT (Business address)
+- **website**: VARCHAR(500) (Business website URL)
+- **verified**: BOOLEAN DEFAULT FALSE (Verification status)
+- **created_at**: TIMESTAMP DEFAULT NOW()
+- **updated_at**: TIMESTAMP DEFAULT NOW()
+- **UNIQUE(user_id, name)**: Prevents duplicate business names per user
 
 ### Indexes
 
@@ -79,11 +94,19 @@ yarn ts-node db/init.ts
 - Visa type filtering: `idx_users_visa_type`
 - Geographic queries: `idx_users_location` (GIN)
 - Array searches: `idx_users_interests` (GIN)
-- JSON queries: `idx_users_profile_answers` (GIN)
+- Profile photo: `idx_users_profile_photo_url`, `idx_users_profile_photo_public_id`
+- Bio: `idx_users_bio`
+
+#### Businesses Table Indexes
+
+- User lookup: `idx_businesses_user_id`
+- Name search: `idx_businesses_name`
+- Verification status: `idx_businesses_verified`
 
 ### Triggers
 
-- **update_users_updated_at**: Automatically updates `updated_at` timestamp
+- **update_users_updated_at**: Automatically updates `updated_at` timestamp for users table
+- **update_businesses_updated_at**: Automatically updates `updated_at` timestamp for businesses table
 
 ## Usage
 

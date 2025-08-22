@@ -36,11 +36,29 @@
             job_boards TEXT[], -- Array of job boards
             visa_advice TEXT,
             
-            -- Legacy JSONB field for backward compatibility
-            profile_answers JSONB, -- All profile sections (background_identity, lifestyle_personality, etc.)
+            -- Profile photo fields
+            profile_photo_url VARCHAR(500), -- URL to the profile photo
+            profile_photo_public_id VARCHAR(255), -- Cloudinary public ID for deletion
+            
+            -- Additional profile fields
+            bio TEXT, -- User bio/description
             
             created_at TIMESTAMP DEFAULT NOW(),
             updated_at TIMESTAMP DEFAULT NOW()
+        );
+
+        -- Create businesses table
+        CREATE TABLE IF NOT EXISTS businesses (
+            id SERIAL PRIMARY KEY,
+            user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            name VARCHAR(255) NOT NULL,
+            description TEXT,
+            address TEXT,
+            website VARCHAR(500),
+            verified BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW(),
+            UNIQUE(user_id, name) -- Prevent duplicate business names per user
         );
 
         -- Create index on email for faster lookups
@@ -63,8 +81,17 @@
 -- Create index on interests for array searches
 CREATE INDEX IF NOT EXISTS idx_users_interests ON users USING GIN(interests);
 
--- Create index on profile_answers for JSON queries
-CREATE INDEX IF NOT EXISTS idx_users_profile_answers ON users USING GIN(profile_answers);
+-- Create indexes for profile photo fields
+CREATE INDEX IF NOT EXISTS idx_users_profile_photo_url ON users(profile_photo_url);
+CREATE INDEX IF NOT EXISTS idx_users_profile_photo_public_id ON users(profile_photo_public_id);
+
+-- Create indexes for additional profile fields
+CREATE INDEX IF NOT EXISTS idx_users_bio ON users(bio);
+
+-- Create indexes for businesses table
+CREATE INDEX IF NOT EXISTS idx_businesses_user_id ON businesses(user_id);
+CREATE INDEX IF NOT EXISTS idx_businesses_name ON businesses(name);
+CREATE INDEX IF NOT EXISTS idx_businesses_verified ON businesses(verified);
 
 -- Create indexes for new profile fields
 CREATE INDEX IF NOT EXISTS idx_users_nationality ON users(nationality);
@@ -96,6 +123,12 @@ $$ language 'plpgsql';
 -- Create trigger to automatically update updated_at
 CREATE TRIGGER update_users_updated_at 
     BEFORE UPDATE ON users 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Create trigger for businesses table
+CREATE TRIGGER update_businesses_updated_at 
+    BEFORE UPDATE ON businesses 
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
 

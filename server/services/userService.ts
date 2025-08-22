@@ -38,7 +38,9 @@ export interface User {
   mentorship_interest?: boolean;
   job_boards?: string[];
   visa_advice?: string;
-  profile_answers?: Record<string, any>;
+  profile_photo_url?: string;
+  profile_photo_public_id?: string;
+  bio?: string;
 
   created_at?: Date;
   updated_at?: Date;
@@ -85,7 +87,9 @@ export interface CreateUserData extends BasicUserData {
   mentorship_interest?: boolean;
   job_boards?: string[];
   visa_advice?: string;
-  profile_answers?: Record<string, any>;
+  profile_photo_url?: string;
+  profile_photo_public_id?: string;
+  bio?: string;
 }
 
 export class UserService {
@@ -263,9 +267,17 @@ export class UserService {
       values.push(updates.visa_advice);
     }
 
-    if (updates.profile_answers !== undefined) {
-      setClause.push(`profile_answers = $${paramCount++}`);
-      values.push(JSON.stringify(updates.profile_answers));
+    if (updates.profile_photo_url !== undefined) {
+      setClause.push(`profile_photo_url = $${paramCount++}`);
+      values.push(updates.profile_photo_url);
+    }
+    if (updates.profile_photo_public_id !== undefined) {
+      setClause.push(`profile_photo_public_id = $${paramCount++}`);
+      values.push(updates.profile_photo_public_id);
+    }
+    if (updates.bio !== undefined) {
+      setClause.push(`bio = $${paramCount++}`);
+      values.push(updates.bio);
     }
 
     if (setClause.length === 0) {
@@ -382,9 +394,13 @@ export class UserService {
       setClause.push(`visa_advice = $${paramCount++}`);
       values.push(profileData.visa_advice);
     }
-    if (profileData.profile_answers !== undefined) {
-      setClause.push(`profile_answers = $${paramCount++}`);
-      values.push(JSON.stringify(profileData.profile_answers));
+    if (profileData.profile_photo_url !== undefined) {
+      setClause.push(`profile_photo_url = $${paramCount++}`);
+      values.push(profileData.profile_photo_url);
+    }
+    if (profileData.profile_photo_public_id !== undefined) {
+      setClause.push(`profile_photo_public_id = $${paramCount++}`);
+      values.push(profileData.profile_photo_public_id);
     }
 
     if (setClause.length === 0) {
@@ -400,25 +416,6 @@ export class UserService {
     `;
 
     const result = await pool.query(query, values);
-    return result.rows[0] || null;
-  }
-
-  // Update specific profile section
-  async updateProfileSection(
-    id: string,
-    section: string,
-    data: any
-  ): Promise<User | null> {
-    const query = `
-      UPDATE users 
-      SET profile_answers = COALESCE(profile_answers, '{}'::jsonb) || $1::jsonb,
-          updated_at = NOW()
-      WHERE id = $2
-      RETURNING *
-    `;
-
-    const sectionData = { [section]: data };
-    const result = await pool.query(query, [JSON.stringify(sectionData), id]);
     return result.rows[0] || null;
   }
 

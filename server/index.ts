@@ -10,6 +10,8 @@ import pool from './db/config';
 // Register API routes
 import authApi from './api/auth';
 import userApi from './api/user';
+import photoApi from './api/photo';
+import businessApi from './api/business';
 
 // Initialize Firebase Admin SDK
 let serviceAccount: ServiceAccount;
@@ -31,7 +33,7 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
   try {
     serviceAccount = require(path.join(
       __dirname,
-      './firebaseServiceAccount.json'
+      './firebase-stage-credentials.json'
     ));
     console.log('✅ Using Firebase service account from local file');
   } catch (error) {
@@ -101,6 +103,8 @@ app.get('/api/health', async (req: Request, res: Response) => {
 // Register API routes
 authApi(app);
 userApi(app);
+photoApi(app);
+businessApi(app);
 
 // Only serve static files in production
 if (process.env.NODE_ENV !== 'development') {

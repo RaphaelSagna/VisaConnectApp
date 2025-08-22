@@ -21,6 +21,11 @@ interface Config {
     serviceAccount: string | undefined;
     webApiKey: string | undefined;
   };
+  cloudinary: {
+    cloudName: string | undefined;
+    apiKey: string | undefined;
+    apiSecret: string | undefined;
+  };
 }
 
 export const config: Config = {
@@ -39,5 +44,10 @@ export const config: Config = {
   firebase: {
     serviceAccount: process.env.FIREBASE_SERVICE_ACCOUNT,
     webApiKey: process.env.FIREBASE_WEB_API_KEY,
+  },
+  cloudinary: {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+    apiKey: process.env.CLOUDINARY_API_KEY,
+    apiSecret: process.env.CLOUDINARY_API_SECRET,
   },
 };

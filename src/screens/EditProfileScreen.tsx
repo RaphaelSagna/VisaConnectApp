@@ -1,48 +1,94 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '../stores/userStore';
-import { UserIcon, PencilIcon } from '@heroicons/react/24/outline';
 import NavigationBar from '../components/NavigationBar';
+import PhotoUpload from '../components/PhotoUpload';
+import { uploadProfilePhoto, deleteProfilePhoto } from '../api/cloudinary';
 
 const EditProfileScreen: React.FC = () => {
   const navigate = useNavigate();
   const { user, updateUser } = useUserStore();
 
   // Form state
-  const [bio, setBio] = useState(user?.profile_answers?.bio || '');
-  const [businessName, setBusinessName] = useState(
-    user?.profile_answers?.business?.name || ''
+  const [bio, setBio] = useState(
+    user?.bio ||
+      'Looking to get some people together to enjoy the beautiful city of Miami.'
   );
+  const [businessName, setBusinessName] = useState(user?.business_name || '');
   const [businessDescription, setBusinessDescription] = useState(
-    user?.profile_answers?.business?.description || ''
+    user?.business_description || ''
   );
   const [businessAddress, setBusinessAddress] = useState(
-    user?.profile_answers?.business?.address || ''
+    user?.business_address || ''
   );
   const [businessWebsite, setBusinessWebsite] = useState(
-    user?.profile_answers?.business?.website || ''
+    user?.business_website || ''
   );
   const [isEditingBusiness, setIsEditingBusiness] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | undefined>(
+    user?.profile_photo_url
+  );
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string>('');
+
+  const handlePhotoChange = (file: File) => {
+    setSelectedPhoto(file);
+    setUploadError('');
+    // Create preview URL for immediate display
+    const previewUrl = URL.createObjectURL(file);
+    setPhotoPreviewUrl(previewUrl);
+  };
+
+  const handlePhotoRemove = async () => {
+    try {
+      // If there's an existing photo, we'll need to handle deletion on the backend
+      // For now, just clear the local state
+      setSelectedPhoto(null);
+      setPhotoPreviewUrl(undefined);
+      setUploadError('');
+    } catch (error) {
+      console.error('Error removing photo:', error);
+      setUploadError('Failed to remove photo');
+    }
+  };
 
   const handleSaveProfile = async () => {
     try {
+      setIsUploading(true);
+      setUploadError('');
+
+      let photoUrl = user?.profile_photo_url;
+
+      // Upload new photo to Cloudinary if selected
+      if (selectedPhoto) {
+        const uploadResult = await uploadProfilePhoto(selectedPhoto);
+
+        if (!uploadResult.success) {
+          setUploadError(uploadResult.error || 'Failed to upload photo');
+          setIsUploading(false);
+          return;
+        }
+
+        photoUrl = uploadResult.url;
+      }
+
+      // Update user profile with new photo URL
       await updateUser({
-        profile_answers: {
-          ...user?.profile_answers,
-          bio,
-          business: businessName
-            ? {
-                name: businessName,
-                description: businessDescription,
-                address: businessAddress,
-                website: businessWebsite,
-              }
-            : undefined,
-        },
+        bio,
+        profile_photo_url: photoUrl,
+        business_name: businessName || undefined,
+        business_description: businessDescription || undefined,
+        business_address: businessAddress || undefined,
+        business_website: businessWebsite || undefined,
       });
+
+      setIsUploading(false);
       navigate('/settings');
     } catch (error) {
       console.error('Failed to update profile:', error);
+      setUploadError('Failed to save profile');
+      setIsUploading(false);
     }
   };
 
@@ -66,11 +112,11 @@ const EditProfileScreen: React.FC = () => {
   const handleCancelBusiness = () => {
     setIsEditingBusiness(false);
     // Reset to original values or clear if no existing business
-    if (user?.profile_answers?.business?.name) {
-      setBusinessName(user.profile_answers.business.name);
-      setBusinessDescription(user.profile_answers.business.description || '');
-      setBusinessAddress(user.profile_answers.business.address || '');
-      setBusinessWebsite(user.profile_answers.business.website || '');
+    if (user?.business_name) {
+      setBusinessName(user.business_name);
+      setBusinessDescription(user.business_description || '');
+      setBusinessAddress(user.business_address || '');
+      setBusinessWebsite(user.business_website || '');
     } else {
       // Clear business data if no existing business
       setBusinessName('');
@@ -94,23 +140,14 @@ const EditProfileScreen: React.FC = () => {
         {/* Profile Header */}
         <div className="text-center mb-6">
           <div className="relative inline-block mb-4">
-            {/* Profile Picture */}
-            <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden">
-              {user?.profile_answers?.profileImage ? (
-                <img
-                  src={user.profile_answers.profileImage}
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <UserIcon className="w-12 h-12 text-gray-600" />
-              )}
-            </div>
-
-            {/* Edit Icon Overlay */}
-            <div className="absolute bottom-0 right-0 w-8 h-8 bg-black rounded-full flex items-center justify-center">
-              <PencilIcon className="w-4 h-4 text-white" />
-            </div>
+            {/* Profile Picture with PhotoUpload component */}
+            <PhotoUpload
+              currentPhotoUrl={photoPreviewUrl}
+              onPhotoChange={handlePhotoChange}
+              onPhotoRemove={handlePhotoRemove}
+              size="md"
+              className="mx-auto"
+            />
           </div>
 
           {/* User Name */}
@@ -146,7 +183,7 @@ const EditProfileScreen: React.FC = () => {
         </div>
 
         {/* Business Section - Conditionally render based on existing business */}
-        {!user?.profile_answers?.business?.name ? (
+        {!user?.business_name ? (
           /* Show "Do you have a business?" prompt if no business exists */
           <div className="bg-white rounded-lg p-4 mb-4 shadow-sm">
             <h2 className="font-bold text-gray-900 mb-3">
@@ -236,10 +273,22 @@ const EditProfileScreen: React.FC = () => {
         {/* Global Update Button */}
         <button
           onClick={handleSaveProfile}
-          className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg font-medium text-lg hover:bg-blue-700 transition-colors shadow-sm"
+          disabled={isUploading}
+          className={`w-full py-4 px-6 rounded-lg font-medium text-lg transition-colors shadow-sm ${
+            isUploading
+              ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+              : 'bg-blue-600 text-white hover:bg-blue-700'
+          }`}
         >
-          Update
+          {isUploading ? 'Uploading...' : 'Update'}
         </button>
+
+        {/* Upload Error Display */}
+        {uploadError && (
+          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-600 text-sm text-center">{uploadError}</p>
+          </div>
+        )}
       </div>
     </div>
   );

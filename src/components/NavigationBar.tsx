@@ -84,9 +84,13 @@ const NavigationBar: React.FC<NavigationBarProps> = ({
 
           {/* Right side - User avatar */}
           <div className="flex items-center">
-            <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
+            <button
+              onClick={() => navigate('/edit-profile')}
+              className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center hover:bg-gray-400 transition-colors cursor-pointer"
+              aria-label="Edit Profile"
+            >
               <UserIcon className="h-5 w-5 text-gray-600" />
-            </div>
+            </button>
           </div>
         </div>
       </div>

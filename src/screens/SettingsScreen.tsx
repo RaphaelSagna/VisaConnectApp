@@ -25,7 +25,11 @@ const SettingsScreen: React.FC = () => {
   };
 
   const menuItemsAccount = [
-    { label: 'Edit profile', icon: UserIcon, onClick: () => {} },
+    {
+      label: 'Edit profile',
+      icon: UserIcon,
+      onClick: () => navigate('/edit-profile'),
+    },
     { label: 'Change Email', icon: LockClosedIcon, onClick: () => {} },
     { label: 'Change Password', icon: LockClosedIcon, onClick: () => {} },
     { label: 'Email VisaConnect', icon: EnvelopeIcon, onClick: () => {} },
@@ -90,6 +94,9 @@ const SettingsScreen: React.FC = () => {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
               {menuItemsAccount.map((item, idx) => {
                 const isLogout = item.label === 'Logout';
+                const isEditProfile = item.label === 'Edit profile';
+                const isEnabled = isLogout || isEditProfile;
+
                 return (
                   <button
                     key={item.label}
@@ -98,12 +105,12 @@ const SettingsScreen: React.FC = () => {
                         ? 'text-red-600 hover:bg-red-50'
                         : 'text-gray-800 hover:bg-gray-50'
                     } ${
-                      !isLogout
-                        ? 'opacity-50 cursor-not-allowed'
-                        : 'cursor-pointer'
+                      isEnabled
+                        ? 'cursor-pointer'
+                        : 'opacity-50 cursor-not-allowed'
                     }`}
-                    onClick={isLogout ? item.onClick : undefined}
-                    disabled={!isLogout}
+                    onClick={isEnabled ? item.onClick : undefined}
+                    disabled={!isEnabled}
                   >
                     <item.icon
                       className={`h-5 w-5 ${

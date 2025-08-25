@@ -38,7 +38,9 @@ interface LoginResponse {
     mentorship_interest?: boolean;
     job_boards?: string[];
     visa_advice?: string;
-    profile_answers?: Record<string, any>;
+    profile_photo_url?: string;
+    profile_photo_public_id?: string;
+    bio?: string;
   };
   token: string; // Firebase ID token for authenticated API calls
 }
@@ -102,8 +104,6 @@ const SignInScreen: React.FC = () => {
         }
       );
 
-      console.log('Login response:', loginResponse); // Debug log
-
       if (loginResponse.user) {
         // Store the Firebase ID token if provided by backend
         if (loginResponse.token) {
@@ -137,7 +137,9 @@ const SignInScreen: React.FC = () => {
           mentorship_interest: loginResponse.user.mentorship_interest,
           job_boards: loginResponse.user.job_boards || [],
           visa_advice: loginResponse.user.visa_advice,
-          profile_answers: loginResponse.user.profile_answers || {},
+          profile_photo_url: loginResponse.user.profile_photo_url,
+          profile_photo_public_id: loginResponse.user.profile_photo_public_id,
+          bio: loginResponse.user.bio,
         };
 
         // Store in Zustand store (this also updates localStorage for backward compatibility)

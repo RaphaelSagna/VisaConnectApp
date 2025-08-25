@@ -31,7 +31,9 @@ export interface UserData {
   mentorship_interest?: boolean;
   job_boards?: string[];
   visa_advice?: string;
-  profile_answers?: Record<string, any>;
+  profile_photo_url?: string;
+  profile_photo_public_id?: string;
+  bio?: string;
 }
 
 // Store interface

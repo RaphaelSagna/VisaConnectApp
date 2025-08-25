@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserIcon } from '@heroicons/react/24/outline';
+import { useUserStore } from '../stores/userStore';
 import logo from '../assets/images/logo.png';
 
 interface NavigationBarProps {
@@ -13,6 +14,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({
   onMenuClick,
 }) => {
   const navigate = useNavigate();
+  const { user } = useUserStore();
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', key: 'dashboard', enabled: true },
@@ -84,9 +86,21 @@ const NavigationBar: React.FC<NavigationBarProps> = ({
 
           {/* Right side - User avatar */}
           <div className="flex items-center">
-            <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
-              <UserIcon className="h-5 w-5 text-gray-600" />
-            </div>
+            <button
+              onClick={() => navigate('/edit-profile')}
+              className="h-8 w-8 rounded-full overflow-hidden bg-gray-300 flex items-center justify-center hover:bg-gray-400 transition-colors cursor-pointer"
+              aria-label="Edit Profile"
+            >
+              {user?.profile_photo_url ? (
+                <img
+                  src={user.profile_photo_url}
+                  alt="Profile"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <UserIcon className="h-5 w-5 text-gray-600" />
+              )}
+            </button>
           </div>
         </div>
       </div>

@@ -202,11 +202,7 @@ export default function userApi(app: Express) {
         const { section } = req.params;
         const sectionData = req.body;
 
-        const user = await userService.updateProfileSection(
-          req.user!.uid,
-          section,
-          sectionData
-        );
+        const user = await userService.updateUser(req.user!.uid, sectionData);
 
         if (!user) {
           return res.status(404).json({
@@ -239,11 +235,7 @@ export default function userApi(app: Express) {
         const { section } = req.params;
         const sectionData = req.body;
 
-        const user = await userService.updateProfileSection(
-          req.user!.uid,
-          section,
-          sectionData
-        );
+        const user = await userService.updateUser(req.user!.uid, sectionData);
 
         if (!user) {
           return res.status(404).json({

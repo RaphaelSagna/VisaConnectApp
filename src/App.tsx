@@ -9,29 +9,94 @@ import LifestyleScreen from './screens/wizard/LifestyleScreen';
 import DashboardScreen from './screens/DashboardScreen';
 import SignInScreen from './screens/LoginScreen';
 import SettingsScreen from './screens/SettingsScreen';
+import EditProfileScreen from './screens/EditProfileScreen';
+import PublicProfileScreen from './screens/PublicProfileScreen';
 import TravelExplorationScreen from './screens/wizard/TravelExplorationScreen';
 import KnowledgeCommunityScreen from './screens/wizard/KnowledgeCommunityScreen';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
+import AuthenticatedRoute from './components/AuthenticatedRoute';
 
 function App() {
   return (
     <>
       <Routes>
+        {/* Public routes - no authentication required */}
         <Route path="/" element={<LoginPage />} />
         <Route path="/create-account" element={<CreateAccountPage />} />
-        <Route path="/account-created" element={<AccountCreatedPage />} />
-        <Route path="/background" element={<BackgroundScreen />} />
-        <Route path="/lifestyle" element={<LifestyleScreen />} />
-        <Route path="/dashboard" element={<DashboardScreen />} />
         <Route path="/sign-in" element={<SignInScreen />} />
-        <Route path="/settings" element={<SettingsScreen />} />
+
+        {/* Protected routes - authentication required */}
+        <Route
+          path="/dashboard"
+          element={
+            <AuthenticatedRoute>
+              <DashboardScreen />
+            </AuthenticatedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <AuthenticatedRoute>
+              <SettingsScreen />
+            </AuthenticatedRoute>
+          }
+        />
+        <Route
+          path="/edit-profile"
+          element={
+            <AuthenticatedRoute>
+              <EditProfileScreen />
+            </AuthenticatedRoute>
+          }
+        />
+        <Route
+          path="/public-profile"
+          element={
+            <AuthenticatedRoute>
+              <PublicProfileScreen />
+            </AuthenticatedRoute>
+          }
+        />
+        <Route
+          path="/background"
+          element={
+            <AuthenticatedRoute>
+              <BackgroundScreen />
+            </AuthenticatedRoute>
+          }
+        />
+        <Route
+          path="/lifestyle"
+          element={
+            <AuthenticatedRoute>
+              <LifestyleScreen />
+            </AuthenticatedRoute>
+          }
+        />
         <Route
           path="/travel-exploration"
-          element={<TravelExplorationScreen />}
+          element={
+            <AuthenticatedRoute>
+              <TravelExplorationScreen />
+            </AuthenticatedRoute>
+          }
         />
         <Route
           path="/knowledge-community"
-          element={<KnowledgeCommunityScreen />}
+          element={
+            <AuthenticatedRoute>
+              <KnowledgeCommunityScreen />
+            </AuthenticatedRoute>
+          }
+        />
+        <Route
+          path="/account-created"
+          element={
+            <AuthenticatedRoute>
+              <AccountCreatedPage />
+            </AuthenticatedRoute>
+          }
         />
       </Routes>
       <PWAInstallPrompt />

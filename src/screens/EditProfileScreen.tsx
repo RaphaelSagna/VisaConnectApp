@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '../stores/userStore';
 import NavigationBar from '../components/NavigationBar';
 import PhotoUpload from '../components/PhotoUpload';
-import { uploadProfilePhoto, deleteProfilePhoto } from '../api/cloudinary';
+import { uploadProfilePhoto } from '../api/cloudinary';
 
 const EditProfileScreen: React.FC = () => {
   const navigate = useNavigate();

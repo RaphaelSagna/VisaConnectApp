@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '../stores/userStore';
-import NavigationBar from '../components/NavigationBar';
 
 const PublicProfileScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -15,23 +14,6 @@ const PublicProfileScreen: React.FC = () => {
   const handleChatClick = () => {
     // Handle chat button click
     console.log('Chat clicked');
-  };
-
-  // Helper function to format languages
-  const formatLanguages = (languages?: string[]) => {
-    if (!languages || languages.length === 0) return 'English';
-    if (languages.length === 1) return languages[0];
-    if (languages.length === 2) return languages.join(' and ');
-    return `${languages.slice(0, -1).join(', ')}, and ${
-      languages[languages.length - 1]
-    }`;
-  };
-
-  // Helper function to format hobbies
-  const formatHobbies = (hobbies?: string[]) => {
-    if (!hobbies || hobbies.length === 0) return 'Various interests';
-    if (hobbies.length <= 3) return hobbies.join(', ');
-    return `${hobbies.slice(0, 2).join(', ')}, and ${hobbies.length - 2} more`;
   };
 
   // Helper function to format travel experience

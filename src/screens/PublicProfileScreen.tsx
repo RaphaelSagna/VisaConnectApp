@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useUserStore } from '../stores/userStore';
-import NavigationBar from '../components/NavigationBar';
 
 interface ProfileUser {
   id: string;
@@ -194,40 +193,31 @@ const PublicProfileScreen: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        <NavigationBar currentPage="dashboard" onMenuClick={handleMenuClick} />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="animate-spin h-10 w-10 border-4 border-blue-500 border-t-transparent rounded-full"></div>
-        </div>
+      <div className="flex items-center justify-center py-20">
+        <div className="animate-spin h-10 w-10 border-4 border-blue-500 border-t-transparent rounded-full"></div>
       </div>
     );
   }
 
   if (!profileUser) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        <NavigationBar currentPage="dashboard" onMenuClick={handleMenuClick} />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              User not found
-            </h2>
-            <p className="text-gray-600">
-              The profile you're looking for doesn't exist.
-            </p>
-          </div>
+      <div className="flex items-center justify-center py-20">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            User not found
+          </h2>
+          <p className="text-gray-600">
+            The profile you're looking for doesn't exist.
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col relative">
-      {/* Shared Navigation Bar */}
-      <NavigationBar currentPage="dashboard" onMenuClick={handleMenuClick} />
-
+    <div>
       {/* Profile Header - Name and Chat Icon */}
-      <div className="max-w-md mx-auto py-4">
+      <div className="max-w-4xl mx-auto py-4">
         <div className="flex items-center justify-between">
           {/* Left spacer to balance the layout */}
           <div className="w-10"></div>
@@ -261,7 +251,7 @@ const PublicProfileScreen: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 px-4 py-6 max-w-md mx-auto w-full">
+      <div className="flex-1 px-4 md:px-6 py-6 max-w-4xl mx-auto w-full">
         {/* Profile Information Card */}
         <div className="bg-white rounded-lg p-4 mb-4 shadow-sm">
           <div className="flex items-start space-x-4">

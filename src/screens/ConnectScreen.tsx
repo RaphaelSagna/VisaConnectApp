@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import NavigationBar from '../components/NavigationBar';
 import Button from '../components/Button';
 import {
   MagnifyingGlassIcon,
@@ -101,12 +100,9 @@ const ConnectScreen: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Navigation Bar */}
-      <NavigationBar currentPage="social" onMenuClick={handleMenuClick} />
-
+    <div>
       {/* Main Content */}
-      <div className="flex-1 px-4 py-6 max-w-4xl mx-auto">
+      <div className="px-4 md:px-6 py-6 max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Connect</h1>

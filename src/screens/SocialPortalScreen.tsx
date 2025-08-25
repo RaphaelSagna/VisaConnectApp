@@ -1,6 +1,5 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import NavigationBar from '../components/NavigationBar';
 import Button from '../components/Button';
 
 const SocialPortalScreen: React.FC = () => {
@@ -26,12 +25,9 @@ const SocialPortalScreen: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Navigation Bar */}
-      <NavigationBar currentPage="social" onMenuClick={handleMenuClick} />
-
+    <div className="relative">
       {/* Main Content */}
-      <div className="flex-1 px-4 py-6 max-w-md mx-auto">
+      <div className="px-4 md:px-6 py-6 max-w-4xl mx-auto">
         {/* Title */}
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Social Portal</h1>

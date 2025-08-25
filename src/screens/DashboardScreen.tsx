@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import Button from '../components/Button';
 import { useNavigate } from 'react-router-dom';
 import DrawerMenu from '../components/DrawerMenu';
-import NavigationBar from '../components/NavigationBar';
 import { useUserStore } from '../stores/userStore';
 
 const DashboardScreen: React.FC = () => {
@@ -30,16 +29,13 @@ const DashboardScreen: React.FC = () => {
   const handleOverlayClick = () => setIsDrawerOpen(false);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col relative">
+    <div className="relative">
       <DrawerMenu
         open={isDrawerOpen}
         onClose={handleOverlayClick}
         navigate={navigate}
         highlight={undefined}
       />
-
-      {/* Shared Navigation Bar */}
-      <NavigationBar currentPage="dashboard" onMenuClick={handleMenuClick} />
 
       {isLoading && (
         <div className="flex-1 flex items-center justify-center">

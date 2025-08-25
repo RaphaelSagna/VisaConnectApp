@@ -104,8 +104,6 @@ const SignInScreen: React.FC = () => {
         }
       );
 
-      console.log('Login response:', loginResponse); // Debug log
-
       if (loginResponse.user) {
         // Store the Firebase ID token if provided by backend
         if (loginResponse.token) {

@@ -14,17 +14,6 @@ const EditProfileScreen: React.FC = () => {
     user?.bio ||
       'Looking to get some people together to enjoy the beautiful city of Miami.'
   );
-  const [businessName, setBusinessName] = useState(user?.business_name || '');
-  const [businessDescription, setBusinessDescription] = useState(
-    user?.business_description || ''
-  );
-  const [businessAddress, setBusinessAddress] = useState(
-    user?.business_address || ''
-  );
-  const [businessWebsite, setBusinessWebsite] = useState(
-    user?.business_website || ''
-  );
-  const [isEditingBusiness, setIsEditingBusiness] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | undefined>(
     user?.profile_photo_url
@@ -77,10 +66,6 @@ const EditProfileScreen: React.FC = () => {
       await updateUser({
         bio,
         profile_photo_url: photoUrl,
-        business_name: businessName || undefined,
-        business_description: businessDescription || undefined,
-        business_address: businessAddress || undefined,
-        business_website: businessWebsite || undefined,
       });
 
       setIsUploading(false);
@@ -92,42 +77,12 @@ const EditProfileScreen: React.FC = () => {
     }
   };
 
-  const handleAddBusiness = () => {
-    setIsEditingBusiness(true);
-    // Set default values for new business
-    setBusinessName('New Business');
-    setBusinessDescription('');
-    setBusinessAddress('');
-    setBusinessWebsite('');
-  };
-
-  const handleUpdateBusiness = () => {
-    setIsEditingBusiness(true);
-  };
-
-  const handleSaveBusiness = () => {
-    setIsEditingBusiness(false);
-  };
-
-  const handleCancelBusiness = () => {
-    setIsEditingBusiness(false);
-    // Reset to original values or clear if no existing business
-    if (user?.business_name) {
-      setBusinessName(user.business_name);
-      setBusinessDescription(user.business_description || '');
-      setBusinessAddress(user.business_address || '');
-      setBusinessWebsite(user.business_website || '');
-    } else {
-      // Clear business data if no existing business
-      setBusinessName('');
-      setBusinessDescription('');
-      setBusinessAddress('');
-      setBusinessWebsite('');
-    }
-  };
-
   const handleWizardClick = () => {
     navigate('/background');
+  };
+
+  const handleViewPublicProfile = () => {
+    navigate('/public-profile');
   };
 
   return (
@@ -182,94 +137,6 @@ const EditProfileScreen: React.FC = () => {
           </div>
         </div>
 
-        {/* Business Section - Conditionally render based on existing business */}
-        {!user?.business_name ? (
-          /* Show "Do you have a business?" prompt if no business exists */
-          <div className="bg-white rounded-lg p-4 mb-4 shadow-sm">
-            <h2 className="font-bold text-gray-900 mb-3">
-              Do you have a business?
-            </h2>
-            <button
-              onClick={handleAddBusiness}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-            >
-              Add Business
-            </button>
-          </div>
-        ) : (
-          /* Show existing business details if business exists */
-          <div className="bg-white rounded-lg p-4 mb-6 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-bold text-gray-900">{businessName}</h3>
-              <span className="text-blue-600 text-sm font-medium">
-                Verified
-              </span>
-            </div>
-
-            {isEditingBusiness ? (
-              <div className="space-y-3 mb-4">
-                <input
-                  type="text"
-                  value={businessName}
-                  onChange={(e) => setBusinessName(e.target.value)}
-                  className="w-full p-2 border border-gray-200 rounded-lg"
-                  placeholder="Business Name"
-                />
-                <input
-                  type="text"
-                  value={businessDescription}
-                  onChange={(e) => setBusinessDescription(e.target.value)}
-                  className="w-full p-2 border border-gray-200 rounded-lg"
-                  placeholder="Business Description"
-                />
-                <input
-                  type="text"
-                  value={businessAddress}
-                  onChange={(e) => setBusinessAddress(e.target.value)}
-                  className="w-full p-2 border border-gray-200 rounded-lg"
-                  placeholder="Address"
-                />
-                <input
-                  type="text"
-                  value={businessWebsite}
-                  onChange={(e) => setBusinessWebsite(e.target.value)}
-                  className="w-full p-2 border border-gray-200 rounded-lg"
-                  placeholder="Website"
-                />
-                <div className="flex space-x-2">
-                  <button
-                    onClick={handleSaveBusiness}
-                    className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={handleCancelBusiness}
-                    className="flex-1 bg-gray-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-700 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-2 mb-4">
-                <p className="text-gray-700">{businessDescription}</p>
-                <p className="text-gray-600 text-sm">{businessAddress}</p>
-                <p className="text-blue-600 text-sm">{businessWebsite}</p>
-              </div>
-            )}
-
-            {!isEditingBusiness && (
-              <button
-                onClick={handleUpdateBusiness}
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-              >
-                Update Profile
-              </button>
-            )}
-          </div>
-        )}
-
         {/* Global Update Button */}
         <button
           onClick={handleSaveProfile}
@@ -290,6 +157,33 @@ const EditProfileScreen: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* View Public Profile Button - Fixed in top right */}
+      <button
+        onClick={handleViewPublicProfile}
+        className="fixed top-20 right-4 z-40 bg-black text-white p-3 rounded-full shadow-lg hover:bg-gray-800 transition-colors"
+        aria-label="View Public Profile"
+      >
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+          />
+        </svg>
+      </button>
     </div>
   );
 };

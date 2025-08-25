@@ -112,12 +112,12 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
   };
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`flex flex-col items-center ${className}`}>
       {/* Photo Display/Upload Area */}
       <div
         className={`${
           sizeClasses[size]
-        } rounded-full border-2 border-dashed transition-colors cursor-pointer ${
+        } rounded-full border-2 border-dashed transition-colors cursor-pointer flex items-center justify-center ${
           isDragOver
             ? 'border-blue-400 bg-blue-50'
             : currentPhotoUrl
@@ -149,10 +149,10 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
             )}
           </div>
         ) : (
-          // Show upload placeholder
-          <div className="w-full h-full rounded-full flex flex-col items-center justify-center text-gray-400">
+          // Show upload placeholder - centered content
+          <div className="flex flex-col items-center justify-center text-gray-400 text-center">
             <PhotoIcon className={iconSizes[size]} />
-            <span className="text-xs text-center mt-1">
+            <span className="text-xs mt-1">
               {isDragOver ? 'Drop here' : 'Click to upload'}
             </span>
           </div>

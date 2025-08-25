@@ -10,6 +10,7 @@ import DashboardScreen from './screens/DashboardScreen';
 import SignInScreen from './screens/LoginScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import EditProfileScreen from './screens/EditProfileScreen';
+import PublicProfileScreen from './screens/PublicProfileScreen';
 import TravelExplorationScreen from './screens/wizard/TravelExplorationScreen';
 import KnowledgeCommunityScreen from './screens/wizard/KnowledgeCommunityScreen';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
@@ -27,6 +28,7 @@ function App() {
         <Route path="/sign-in" element={<SignInScreen />} />
         <Route path="/settings" element={<SettingsScreen />} />
         <Route path="/edit-profile" element={<EditProfileScreen />} />
+        <Route path="/public-profile" element={<PublicProfileScreen />} />
         <Route
           path="/travel-exploration"
           element={<TravelExplorationScreen />}

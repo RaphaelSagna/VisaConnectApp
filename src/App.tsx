@@ -61,6 +61,14 @@ function App() {
           }
         />
         <Route
+          path="/public-profile/:userId"
+          element={
+            <AuthenticatedRoute>
+              <PublicProfileScreen />
+            </AuthenticatedRoute>
+          }
+        />
+        <Route
           path="/social"
           element={
             <AuthenticatedRoute>

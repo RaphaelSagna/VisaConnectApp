@@ -474,6 +474,40 @@ export class UserService {
     const result = await pool.query(query, values);
     return result.rows;
   }
+
+  // Search users by text query (for Connect screen)
+  async searchUsersByText(
+    searchQuery: string,
+    currentUserId: string
+  ): Promise<User[]> {
+    const query = `
+      SELECT id, first_name, last_name, visa_type, current_location, occupation, 
+             profile_photo_url, bio, created_at
+      FROM users 
+      WHERE id != $1 
+        AND (
+          LOWER(first_name) LIKE LOWER($2) OR
+          LOWER(last_name) LIKE LOWER($2) OR
+          LOWER(occupation) LIKE LOWER($2) OR
+          LOWER(visa_type) LIKE LOWER($2) OR
+          LOWER(current_location::text) LIKE LOWER($2) OR
+          LOWER(bio) LIKE LOWER($2)
+        )
+      ORDER BY 
+        CASE 
+          WHEN LOWER(first_name) LIKE LOWER($2) OR LOWER(last_name) LIKE LOWER($2) THEN 1
+          WHEN LOWER(occupation) LIKE LOWER($2) THEN 2
+          WHEN LOWER(visa_type) LIKE LOWER($2) THEN 3
+          ELSE 4
+        END,
+        created_at DESC
+      LIMIT 20
+    `;
+
+    const searchTerm = `%${searchQuery}%`;
+    const result = await pool.query(query, [currentUserId, searchTerm]);
+    return result.rows;
+  }
 }
 
 export default new UserService();

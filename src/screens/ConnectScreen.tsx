@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavigationBar from '../components/NavigationBar';
 import Button from '../components/Button';
@@ -13,7 +13,11 @@ interface User {
   first_name: string;
   last_name: string;
   visa_type: string;
-  current_location: string;
+  current_location: {
+    city: string;
+    state: string;
+    country: string;
+  };
   occupation: string;
   profile_photo_url?: string;
   bio?: string;
@@ -24,50 +28,62 @@ const ConnectScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [debouncedQuery, setDebouncedQuery] = useState('');
 
   const handleMenuClick = () => {
     navigate('/social');
   };
 
+  // Debounce search query to avoid too many API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 300); // 300ms delay
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Trigger search when debounced query changes
+  useEffect(() => {
+    if (debouncedQuery.trim().length >= 2) {
+      handleSearch();
+    } else if (debouncedQuery.trim().length === 0) {
+      setSearchResults([]);
+    }
+  }, [debouncedQuery]);
+
   const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
+    if (!debouncedQuery.trim()) return;
 
     setIsSearching(true);
-    // TODO: Implement actual search API call
-    // For now, simulate search results
-    setTimeout(() => {
-      const mockResults: User[] = [
+    try {
+      const token = localStorage.getItem('userToken');
+      const response = await fetch(
+        `/api/users/search?q=${encodeURIComponent(debouncedQuery.trim())}`,
         {
-          id: '1',
-          first_name: 'Sarah',
-          last_name: 'Chen',
-          visa_type: 'H-1B',
-          current_location: 'San Francisco, CA',
-          occupation: 'Software Engineer',
-          bio: 'Love exploring new restaurants and hiking trails!',
-        },
-        {
-          id: '2',
-          first_name: 'Miguel',
-          last_name: 'Rodriguez',
-          visa_type: 'L-1',
-          current_location: 'Austin, TX',
-          occupation: 'Product Manager',
-          bio: 'Passionate about technology and community building.',
-        },
-        {
-          id: '3',
-          first_name: 'Priya',
-          last_name: 'Patel',
-          visa_type: 'H-1B',
-          current_location: 'Seattle, WA',
-          occupation: 'Data Scientist',
-          bio: 'Interested in AI/ML and outdoor adventures.',
-        },
-      ];
-      setSearchResults(mockResults);
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Search failed');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        setSearchResults(result.data);
+      } else {
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
       setIsSearching(false);
-    }, 1000);
+    }
   };
 
   const handleClearSearch = () => {
@@ -80,8 +96,8 @@ const ConnectScreen: React.FC = () => {
   };
 
   const handleConnect = (userId: string) => {
-    // TODO: Implement connection request
-    console.log('Send connection request to:', userId);
+    // Navigate to user's public profile
+    navigate(`/public-profile/${userId}`);
   };
 
   return (
@@ -98,29 +114,38 @@ const ConnectScreen: React.FC = () => {
 
         {/* Search Bar */}
         <div className="bg-white rounded-xl p-4 shadow-sm mb-6">
-          <div className="relative">
+          <div className="relative max-w-2xl mx-auto">
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="text"
               placeholder="Search by name, location, occupation, or visa type..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-16 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              style={{ minWidth: '400px', maxWidth: '600px' }}
             />
-            {searchQuery && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center">
               <button
                 onClick={handleClearSearch}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full"
+                className={`p-1 hover:bg-gray-100 rounded-full transition-opacity ${
+                  searchQuery ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                }`}
               >
                 <XMarkIcon className="h-4 w-4 text-gray-400" />
               </button>
-            )}
+            </div>
           </div>
         </div>
 
         {/* Search Results */}
-        {searchResults.length > 0 && (
+        {isSearching && (
+          <div className="text-center py-8">
+            <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-gray-600">Searching...</p>
+          </div>
+        )}
+
+        {!isSearching && searchResults.length > 0 && (
           <div className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-900">
               Search Results
@@ -173,7 +198,11 @@ const ConnectScreen: React.FC = () => {
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center text-sm text-gray-700">
                       <span className="font-medium mr-2">Location:</span>
-                      <span>{user.current_location}</span>
+                      <span>
+                        {user.current_location.city},{' '}
+                        {user.current_location.state},{' '}
+                        {user.current_location.country}
+                      </span>
                     </div>
                     <div className="flex items-center text-sm text-gray-700">
                       <span className="font-medium mr-2">Visa:</span>
@@ -215,7 +244,7 @@ const ConnectScreen: React.FC = () => {
               Start searching
             </h3>
             <p className="text-gray-600">
-              Search for users by name, location, occupation, or visa type
+              Search for connections by name, location, occupation, or visa type
             </p>
           </div>
         )}

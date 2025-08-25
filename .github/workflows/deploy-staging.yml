@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - staging
-  # Alternative: Uncomment the lines below to also deploy on push to staging branch
   push:
     branches:
       - staging
@@ -21,7 +20,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }} # Checkout the source branch of the PR
+          # For PRs, use the source branch. For pushes, use the current branch
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -52,7 +52,8 @@ jobs:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: ${{ env.HEROKU_APP_NAME }}
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
-          branch: ${{ github.head_ref }} # Deploy the source branch
+          # For PRs, use the source branch. For pushes, use the current branch
+          branch: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
 
       - name: Health check
         run: |

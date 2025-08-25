@@ -98,10 +98,10 @@ export class UserService {
     const id = userData.id || uuidv4();
     const query = `
               INSERT INTO users (
-                id, email, first_name, last_name, visa_type, current_location, occupation, employer
+                id, email, first_name, last_name, visa_type, current_location, occupation, employer, created_at, updated_at
               )
               VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8
+                $1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW()
               )
               RETURNING *
             `;

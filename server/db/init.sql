@@ -47,20 +47,6 @@
             updated_at TIMESTAMP DEFAULT NOW()
         );
 
-        -- Create businesses table
-        CREATE TABLE IF NOT EXISTS businesses (
-            id SERIAL PRIMARY KEY,
-            user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-            name VARCHAR(255) NOT NULL,
-            description TEXT,
-            address TEXT,
-            website VARCHAR(500),
-            verified BOOLEAN DEFAULT FALSE,
-            created_at TIMESTAMP DEFAULT NOW(),
-            updated_at TIMESTAMP DEFAULT NOW(),
-            UNIQUE(user_id, name) -- Prevent duplicate business names per user
-        );
-
         -- Create index on email for faster lookups
         CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 
@@ -87,11 +73,6 @@ CREATE INDEX IF NOT EXISTS idx_users_profile_photo_public_id ON users(profile_ph
 
 -- Create indexes for additional profile fields
 CREATE INDEX IF NOT EXISTS idx_users_bio ON users(bio);
-
--- Create indexes for businesses table
-CREATE INDEX IF NOT EXISTS idx_businesses_user_id ON businesses(user_id);
-CREATE INDEX IF NOT EXISTS idx_businesses_name ON businesses(name);
-CREATE INDEX IF NOT EXISTS idx_businesses_verified ON businesses(verified);
 
 -- Create indexes for new profile fields
 CREATE INDEX IF NOT EXISTS idx_users_nationality ON users(nationality);
@@ -123,12 +104,6 @@ $$ language 'plpgsql';
 -- Create trigger to automatically update updated_at
 CREATE TRIGGER update_users_updated_at 
     BEFORE UPDATE ON users 
-    FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column();
-
--- Create trigger for businesses table
-CREATE TRIGGER update_businesses_updated_at 
-    BEFORE UPDATE ON businesses 
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
 

@@ -55,9 +55,9 @@ const ConnectScreen: React.FC = () => {
     } else if (debouncedQuery.trim().length === 0) {
       setSearchResults([]);
     }
-  }, [debouncedQuery]);
+  }, [debouncedQuery, handleSearch]);
 
-  const handleSearch = async () => {
+  const handleSearch = useCallback(async () => {
     if (!debouncedQuery.trim()) return;
 
     setIsSearching(true);

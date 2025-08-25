@@ -1,0 +1,107 @@
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import NavigationBar from '../components/NavigationBar';
+import Button from '../components/Button';
+
+const SocialPortalScreen: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleMenuClick = () => {
+    // For now, just go back to dashboard
+    navigate('/dashboard');
+  };
+
+  const handleConnectClick = () => {
+    navigate('/connect');
+  };
+
+  const handleMeetupsClick = () => {
+    // TODO: Navigate to meetups section
+    console.log('Navigate to meetups');
+  };
+
+  const handleTripsClick = () => {
+    // TODO: Navigate to trips section
+    console.log('Navigate to trips');
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Navigation Bar */}
+      <NavigationBar currentPage="social" onMenuClick={handleMenuClick} />
+
+      {/* Main Content */}
+      <div className="flex-1 px-4 py-6 max-w-md mx-auto">
+        {/* Title */}
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">Social Portal</h1>
+        </div>
+
+        {/* Feature Cards */}
+        <div className="space-y-6">
+          {/* Connect Card */}
+          <div className="bg-green-50 rounded-xl p-6 shadow-sm">
+            <div className="flex justify-between items-start mb-4">
+              <h2 className="font-bold text-lg text-gray-900">Connect</h2>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleConnectClick}
+                className="px-6 py-2"
+              >
+                Explore
+              </Button>
+            </div>
+            <p className="text-gray-700 text-sm mb-4 leading-relaxed">
+              Expand your network and connect with others.
+            </p>
+          </div>
+
+          {/* Meetups & Free Time Card */}
+          <div className="bg-green-50 rounded-xl p-6 shadow-sm">
+            <div className="flex justify-between items-start mb-4">
+              <h2 className="font-bold text-lg text-gray-900">
+                Meetups & Free Time
+              </h2>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleMeetupsClick}
+                className="px-6 py-2"
+              >
+                Explore
+              </Button>
+            </div>
+            <p className="text-gray-700 text-sm mb-4 leading-relaxed">
+              Discover who's free when you are. Browse or post meetups based on
+              shared interests, locations, and times.
+            </p>
+          </div>
+
+          {/* Trips, Tips & Advice Card */}
+          <div className="bg-green-50 rounded-xl p-6 shadow-sm">
+            <div className="flex justify-between items-start mb-4">
+              <h2 className="font-bold text-lg text-gray-900">
+                Trips, Tips & Advice
+              </h2>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleTripsClick}
+                className="px-6 py-2"
+              >
+                Explore
+              </Button>
+            </div>
+            <p className="text-gray-700 text-sm mb-4 leading-relaxed">
+              Receive guidance featuring travel insights, popular destinations,
+              and general advice.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SocialPortalScreen;

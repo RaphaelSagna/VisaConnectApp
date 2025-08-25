@@ -11,7 +11,7 @@ interface DrawerMenuProps {
 const menuItems = [
   { label: 'Dashboard', route: '/dashboard', enabled: true },
   { label: 'Work', route: '/work', enabled: false },
-  { label: 'Social', route: '/social', enabled: false },
+  { label: 'Social', route: '/social', enabled: true },
   { label: 'Chat', route: '/chat', enabled: false },
   { label: 'Settings', route: '/settings', enabled: true },
   { label: 'Contact us', route: '/contact', enabled: false },

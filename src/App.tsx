@@ -11,6 +11,8 @@ import SignInScreen from './screens/LoginScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import EditProfileScreen from './screens/EditProfileScreen';
 import PublicProfileScreen from './screens/PublicProfileScreen';
+import SocialPortalScreen from './screens/SocialPortalScreen';
+import ConnectScreen from './screens/ConnectScreen';
 import TravelExplorationScreen from './screens/wizard/TravelExplorationScreen';
 import KnowledgeCommunityScreen from './screens/wizard/KnowledgeCommunityScreen';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
@@ -55,6 +57,22 @@ function App() {
           element={
             <AuthenticatedRoute>
               <PublicProfileScreen />
+            </AuthenticatedRoute>
+          }
+        />
+        <Route
+          path="/social"
+          element={
+            <AuthenticatedRoute>
+              <SocialPortalScreen />
+            </AuthenticatedRoute>
+          }
+        />
+        <Route
+          path="/connect"
+          element={
+            <AuthenticatedRoute>
+              <ConnectScreen />
             </AuthenticatedRoute>
           }
         />

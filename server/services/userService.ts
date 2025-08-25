@@ -38,8 +38,8 @@ export interface User {
   mentorship_interest?: boolean;
   job_boards?: string[];
   visa_advice?: string;
-  profile_photo_url?: string;
-  profile_photo_public_id?: string;
+  profile_photo_url?: string | null;
+  profile_photo_public_id?: string | null;
   bio?: string;
 
   created_at?: Date;
@@ -87,8 +87,8 @@ export interface CreateUserData extends BasicUserData {
   mentorship_interest?: boolean;
   job_boards?: string[];
   visa_advice?: string;
-  profile_photo_url?: string;
-  profile_photo_public_id?: string;
+  profile_photo_url?: string | null;
+  profile_photo_public_id?: string | null;
   bio?: string;
 }
 

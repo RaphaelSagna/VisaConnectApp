@@ -109,7 +109,6 @@ export default function photoApi(app: Express) {
 
         // Update user profile in database to remove photo
         await userService.updateUser(userId, {
-          profile_photo_url: undefined,
           profile_photo_url: null,
           profile_photo_public_id: null,
         });

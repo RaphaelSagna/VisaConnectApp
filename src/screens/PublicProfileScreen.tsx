@@ -227,32 +227,37 @@ const PublicProfileScreen: React.FC = () => {
       <NavigationBar currentPage="dashboard" onMenuClick={handleMenuClick} />
 
       {/* Profile Header - Name and Chat Icon */}
-      <div className="max-w-md mx-auto relative flex items-center justify-center py-4">
-        {/* User Name - Centered */}
-        <h1 className="text-xl font-bold text-gray-900">
-          {profileUser.first_name} {profileUser.last_name}
-        </h1>
+      <div className="max-w-md mx-auto py-4">
+        <div className="flex items-center justify-between">
+          {/* Left spacer to balance the layout */}
+          <div className="w-10"></div>
 
-        {/* Chat Icon - Positioned absolutely to the right */}
-        <button
-          onClick={handleChatClick}
-          className="p-2 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-          aria-label="Chat"
-        >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+          {/* User Name - Centered */}
+          <h1 className="text-xl font-bold text-gray-900">
+            {profileUser.first_name} {profileUser.last_name}
+          </h1>
+
+          {/* Chat Icon - Right side */}
+          <button
+            onClick={handleChatClick}
+            className="w-10 p-2 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+            aria-label="Chat"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-            />
-          </svg>
-        </button>
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 12h.01M12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Main Content */}

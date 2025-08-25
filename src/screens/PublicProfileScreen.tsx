@@ -130,12 +130,12 @@ const PublicProfileScreen: React.FC = () => {
               )}
             </div>
 
-            {/* User Attributes/Badges */}
+            {/* User Attributes/Badges - Updated to match wireframe */}
             <div className="flex-1 space-y-2">
               {/* Has helped people - using mentorship_interest */}
               {user?.mentorship_interest && (
                 <div className="flex items-center space-x-2">
-                  <div className="w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
+                  <div className="w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center">
                     <svg
                       className="w-3 h-3 text-white"
                       fill="currentColor"
@@ -145,7 +145,7 @@ const PublicProfileScreen: React.FC = () => {
                     </svg>
                   </div>
                   <span className="text-sm text-gray-700">
-                    Interested in mentoring others
+                    Has helped <strong>10</strong> people
                   </span>
                 </div>
               )}
@@ -167,7 +167,7 @@ const PublicProfileScreen: React.FC = () => {
                     </svg>
                   </div>
                   <span className="text-sm text-gray-700">
-                    From {user.nationality}
+                    Is from {user.nationality}
                   </span>
                 </div>
               )}
@@ -193,72 +193,21 @@ const PublicProfileScreen: React.FC = () => {
                     </svg>
                   </div>
                   <span className="text-sm text-gray-700">
-                    Enjoys {formatTravelExperience()}
+                    Has been to {formatTravelExperience()}
                   </span>
                 </div>
               )}
-
-              {/* Visa type */}
-              {user?.visa_type && (
-                <div className="flex items-center space-x-2">
-                  <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                    <svg
-                      className="w-3 h-3 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                  </div>
-                  <span className="text-sm text-gray-700">
-                    Has a {user.visa_type} Visa
-                  </span>
-                </div>
-              )}
-
-              {/* Current location */}
-              {user?.current_location?.city &&
-                user?.current_location?.state && (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
-                      <svg
-                        className="w-3 h-3 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                      </svg>
-                    </div>
-                    <span className="text-sm text-gray-700">
-                      Lives in {user.current_location.city},{' '}
-                      {user.current_location.state}
-                    </span>
-                  </div>
-                )}
             </div>
           </div>
 
           {/* Bio/Quote */}
           <div className="mt-4 pt-4 border-t border-gray-100">
-            <p className="text-gray-900 text-sm leading-relaxed">{user?.bio}</p>
+            <p className="text-gray-900 text-sm leading-relaxed italic">
+              "
+              {user?.bio ||
+                'Looking to get some people together to enjoy the beautiful city of Miami.'}
+              "
+            </p>
           </div>
         </div>
 
@@ -272,21 +221,21 @@ const PublicProfileScreen: React.FC = () => {
             {/* Languages */}
             {user?.languages && user.languages.length > 0 && (
               <button className="bg-black text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
-                Languages ({user.languages.length})
+                Language
               </button>
             )}
 
             {/* Hobbies */}
             {user?.hobbies && user.hobbies.length > 0 && (
               <button className="bg-black text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
-                Hobbies ({user.hobbies.length})
+                Sports
               </button>
             )}
 
             {/* Favorite state */}
             {user?.favorite_state && (
               <button className="bg-black text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
-                {user.favorite_state}
+                Favorite state
               </button>
             )}
 
@@ -300,7 +249,7 @@ const PublicProfileScreen: React.FC = () => {
             {/* Preferred outings */}
             {user?.preferred_outings && user.preferred_outings.length > 0 && (
               <button className="bg-black text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
-                Activities ({user.preferred_outings.length})
+                Activities
               </button>
             )}
 

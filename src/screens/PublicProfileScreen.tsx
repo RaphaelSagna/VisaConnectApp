@@ -79,10 +79,10 @@ const PublicProfileScreen: React.FC = () => {
     };
 
     fetchProfileUser();
-  }, [userId]);
+  }, [userId, calculateSimilarities]);
 
   // Calculate similarities between current user and profile user
-  const calculateSimilarities = (profileUser: ProfileUser) => {
+  const calculateSimilarities = useCallback((profileUser: ProfileUser) => {
     if (!currentUser || !profileUser) return;
 
     const similaritiesList: string[] = [];

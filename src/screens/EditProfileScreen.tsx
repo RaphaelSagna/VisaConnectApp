@@ -65,7 +65,14 @@ const EditProfileScreen: React.FC = () => {
       // Update user profile with new photo URL
       await updateUser({
         bio,
+        photoPublicId = uploadResult.public_id;
+      }
+
+      // Update user profile with new photo URL and public_id
+      await updateUser({
+        bio,
         profile_photo_url: photoUrl,
+        profile_photo_public_id: photoPublicId,
       });
 
       setIsUploading(false);

@@ -62,14 +62,14 @@ jobs:
           echo "Running health check..."
           curl -f https://${{ env.HEROKU_APP_NAME }}-113080622b06.herokuapp.com/api/health || exit 1
 
-      - name: Comment on PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `🚀 **Deployed to staging!**\n\n- **Branch**: \`${{ github.head_ref }}\`\n- **Environment**: Staging\n- **URL**: https://${{ env.STAGING_URL }}\n- **Commit**: \`${{ github.sha }}\`\n\nReady for testing! 🧪`
-            })
+      # - name: Comment on PR
+      #   if: github.event_name == 'pull_request'
+      #   uses: actions/github-script@v7
+      #   with:
+      #     script: |
+      #       github.rest.issues.createComment({
+      #         issue_number: context.issue.number,
+      #         owner: context.repo.owner,
+      #         repo: context.repo.repo,
+      #         body: `🚀 **Deployed to staging!**\n\n- **Branch**: \`${{ github.head_ref }}\`\n- **Environment**: Staging\n- **URL**: https://${{ env.STAGING_URL }}\n- **Commit**: \`${{ github.sha }}\`\n\nReady for testing! 🧪`
+      #       })

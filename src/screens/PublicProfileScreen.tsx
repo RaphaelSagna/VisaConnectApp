@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useUserStore } from '../stores/userStore';
+import DrawerMenu from '../components/DrawerMenu';
 
 interface ProfileUser {
   id: string;
@@ -38,6 +39,15 @@ const PublicProfileScreen: React.FC = () => {
   const [profileUser, setProfileUser] = useState<ProfileUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [similarities, setSimilarities] = useState<string[]>([]);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  const handleMenuClick = () => {
+    setIsDrawerOpen(true);
+  };
+
+  const handleOverlayClick = () => {
+    setIsDrawerOpen(false);
+  };
 
   // Fetch profile user data
   useEffect(() => {
@@ -167,10 +177,6 @@ const PublicProfileScreen: React.FC = () => {
     setSimilarities(similaritiesList);
   };
 
-  const handleMenuClick = () => {
-    navigate('/dashboard');
-  };
-
   const handleChatClick = () => {
     // Handle chat button click
     console.log('Chat clicked');
@@ -216,6 +222,13 @@ const PublicProfileScreen: React.FC = () => {
 
   return (
     <div>
+      <DrawerMenu
+        open={isDrawerOpen}
+        onClose={handleOverlayClick}
+        navigate={navigate}
+        highlight={undefined}
+      />
+
       {/* Profile Header - Name and Chat Icon */}
       <div className="max-w-4xl mx-auto py-4">
         <div className="flex items-center justify-between">
@@ -251,7 +264,7 @@ const PublicProfileScreen: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 px-4 md:px-6 py-6 max-w-4xl mx-auto w-full">
+      <div className="flex-1 px-4 md:px-6 py-6 max-w-4xl mx-auto">
         {/* Profile Information Card */}
         <div className="bg-white rounded-lg p-4 mb-4 shadow-sm">
           <div className="flex items-start space-x-4">

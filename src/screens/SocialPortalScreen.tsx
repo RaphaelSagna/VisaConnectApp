@@ -1,13 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
+import DrawerMenu from '../components/DrawerMenu';
 
 const SocialPortalScreen: React.FC = () => {
   const navigate = useNavigate();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const handleMenuClick = () => {
-    // For now, just go back to dashboard
-    navigate('/dashboard');
+    setIsDrawerOpen(true);
+  };
+
+  const handleOverlayClick = () => {
+    setIsDrawerOpen(false);
   };
 
   const handleConnectClick = () => {
@@ -26,11 +31,20 @@ const SocialPortalScreen: React.FC = () => {
 
   return (
     <div className="relative">
+      <DrawerMenu
+        open={isDrawerOpen}
+        onClose={handleOverlayClick}
+        navigate={navigate}
+        highlight={undefined}
+      />
+
       {/* Main Content */}
-      <div className="px-4 md:px-6 py-6 max-w-4xl mx-auto">
+      <div className="flex-1 px-4 md:px-6 py-6 max-w-4xl mx-auto">
         {/* Title */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Social Portal</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+            Social Portal
+          </h1>
         </div>
 
         {/* Feature Cards */}

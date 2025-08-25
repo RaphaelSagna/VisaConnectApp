@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
+import DrawerMenu from '../components/DrawerMenu';
 import {
   MagnifyingGlassIcon,
   XMarkIcon,
@@ -28,9 +29,14 @@ const ConnectScreen: React.FC = () => {
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const handleMenuClick = () => {
-    navigate('/social');
+    setIsDrawerOpen(true);
+  };
+
+  const handleOverlayClick = () => {
+    setIsDrawerOpen(false);
   };
 
   // Debounce search query to avoid too many API calls
@@ -101,8 +107,15 @@ const ConnectScreen: React.FC = () => {
 
   return (
     <div>
+      <DrawerMenu
+        open={isDrawerOpen}
+        onClose={handleOverlayClick}
+        navigate={navigate}
+        highlight={undefined}
+      />
+
       {/* Main Content */}
-      <div className="px-4 md:px-6 py-6 max-w-4xl mx-auto">
+      <div className="flex-1 px-4 md:px-6 py-6 max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Connect</h1>

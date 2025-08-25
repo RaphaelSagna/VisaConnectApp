@@ -276,10 +276,7 @@ const PublicProfileScreen: React.FC = () => {
 
           {/* Bio/Quote */}
           <div className="mt-4 pt-4 border-t border-gray-100">
-            <p className="text-gray-900 text-sm leading-relaxed">
-              {user?.bio ||
-                'Looking to get some people together to enjoy the beautiful city of Miami.'}
-            </p>
+            <p className="text-gray-900 text-sm leading-relaxed">{user?.bio}</p>
           </div>
         </div>
 

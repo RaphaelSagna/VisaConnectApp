@@ -48,6 +48,7 @@ const EditProfileScreen: React.FC = () => {
       setUploadError('');
 
       let photoUrl = user?.profile_photo_url;
+      let photoPublicId = user?.profile_photo_public_id;
 
       // Upload new photo to Cloudinary if selected
       if (selectedPhoto) {
@@ -60,12 +61,7 @@ const EditProfileScreen: React.FC = () => {
         }
 
         photoUrl = uploadResult.url;
-      }
-
-      // Update user profile with new photo URL
-      await updateUser({
-        bio,
-        photoPublicId = uploadResult.public_id;
+        photoPublicId = uploadResult.publicId;
       }
 
       // Update user profile with new photo URL and public_id

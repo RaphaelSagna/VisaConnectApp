@@ -4,6 +4,9 @@ on:
   pull_request:
     branches:
       - staging
+  push:
+    branches:
+      - staging
 
 env:
   HEROKU_APP_NAME: visa-connect-stage
@@ -16,6 +19,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          # For PRs, use the source branch. For pushes, use the current branch
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -46,7 +52,8 @@ jobs:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: ${{ env.HEROKU_APP_NAME }}
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
-          branch: staging
+          # For PRs, use the source branch. For pushes, use the current branch
+          branch: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
 
       - name: Health check
         run: |
@@ -55,14 +62,14 @@ jobs:
           echo "Running health check..."
           curl -f https://${{ env.HEROKU_APP_NAME }}-113080622b06.herokuapp.com/api/health || exit 1
 
-      - name: Comment on PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `🚀 **Deployed to staging!**\n\n- **Branch**: \`${{ github.ref }}\`\n- **Environment**: Staging\n- **URL**: https://${{ env.STAGING_URL }}\n- **Commit**: \`${{ github.sha }}\`\n\nReady for testing! 🧪`
-            })
+      # - name: Comment on PR
+      #   if: github.event_name == 'pull_request'
+      #   uses: actions/github-script@v7
+      #   with:
+      #     script: |
+      #       github.rest.issues.createComment({
+      #         issue_number: context.issue.number,
+      #         owner: context.repo.owner,
+      #         repo: context.repo.repo,
+      #         body: `🚀 **Deployed to staging!**\n\n- **Branch**: \`${{ github.head_ref }}\`\n- **Environment**: Staging\n- **URL**: https://${{ env.STAGING_URL }}\n- **Commit**: \`${{ github.sha }}\`\n\nReady for testing! 🧪`
+      #       })

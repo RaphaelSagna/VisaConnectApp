@@ -1,15 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '../stores/userStore';
+import NavigationBar from '../components/NavigationBar';
 
 const PublicProfileScreen: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useUserStore();
-
-  const handleMenuClick = () => {
-    // Handle menu click - could open a drawer or navigate back
-    navigate('/edit-profile');
-  };
 
   const handleChatClick = () => {
     // Handle chat button click
@@ -33,71 +29,40 @@ const PublicProfileScreen: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col relative">
-      {/* Custom Header - matches the design */}
-      <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Left side - Menu button and Logo */}
-            <div className="flex items-center space-x-4">
-              <button
-                className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                onClick={handleMenuClick}
-                aria-label="Menu"
-              >
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              </button>
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">V</span>
-                </div>
-              </div>
-            </div>
+      {/* Shared Navigation Bar */}
+      <NavigationBar
+        currentPage="dashboard"
+        onMenuClick={() => navigate('/dashboard')}
+      />
 
-            {/* Center - User Name */}
-            <div className="flex-1 text-center">
-              <h1 className="text-lg font-bold text-gray-900">
-                {user?.first_name} {user?.last_name}
-              </h1>
-            </div>
+      {/* Profile Header - Name and Chat Icon */}
+      <div className="max-w-md mx-auto relative flex items-center justify-center py-4">
+        {/* User Name - Centered */}
+        <h1 className="text-xl font-bold text-gray-900">
+          {user?.first_name} {user?.last_name}
+        </h1>
 
-            {/* Right side - Chat button */}
-            <div className="flex items-center">
-              <button
-                onClick={handleChatClick}
-                className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                aria-label="Chat"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
+        {/* Chat Icon - Positioned absolutely to the right */}
+        <button
+          onClick={handleChatClick}
+          className="p-2 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+          aria-label="Chat"
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+            />
+          </svg>
+        </button>
       </div>
-
       {/* Main Content */}
       <div className="flex-1 px-4 py-6 max-w-md mx-auto w-full">
         {/* Profile Information Card */}
@@ -130,12 +95,12 @@ const PublicProfileScreen: React.FC = () => {
               )}
             </div>
 
-            {/* User Attributes/Badges */}
+            {/* User Attributes/Badges - Updated to match wireframe */}
             <div className="flex-1 space-y-2">
               {/* Has helped people - using mentorship_interest */}
               {user?.mentorship_interest && (
                 <div className="flex items-center space-x-2">
-                  <div className="w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
+                  <div className="w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center">
                     <svg
                       className="w-3 h-3 text-white"
                       fill="currentColor"
@@ -145,7 +110,7 @@ const PublicProfileScreen: React.FC = () => {
                     </svg>
                   </div>
                   <span className="text-sm text-gray-700">
-                    Interested in mentoring others
+                    Has helped <strong>10</strong> people
                   </span>
                 </div>
               )}
@@ -167,7 +132,7 @@ const PublicProfileScreen: React.FC = () => {
                     </svg>
                   </div>
                   <span className="text-sm text-gray-700">
-                    From {user.nationality}
+                    Is from {user.nationality}
                   </span>
                 </div>
               )}
@@ -193,72 +158,21 @@ const PublicProfileScreen: React.FC = () => {
                     </svg>
                   </div>
                   <span className="text-sm text-gray-700">
-                    Enjoys {formatTravelExperience()}
+                    Has been to {formatTravelExperience()}
                   </span>
                 </div>
               )}
-
-              {/* Visa type */}
-              {user?.visa_type && (
-                <div className="flex items-center space-x-2">
-                  <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                    <svg
-                      className="w-3 h-3 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                  </div>
-                  <span className="text-sm text-gray-700">
-                    Has a {user.visa_type} Visa
-                  </span>
-                </div>
-              )}
-
-              {/* Current location */}
-              {user?.current_location?.city &&
-                user?.current_location?.state && (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
-                      <svg
-                        className="w-3 h-3 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                      </svg>
-                    </div>
-                    <span className="text-sm text-gray-700">
-                      Lives in {user.current_location.city},{' '}
-                      {user.current_location.state}
-                    </span>
-                  </div>
-                )}
             </div>
           </div>
 
           {/* Bio/Quote */}
           <div className="mt-4 pt-4 border-t border-gray-100">
-            <p className="text-gray-900 text-sm leading-relaxed">{user?.bio}</p>
+            <p className="text-gray-900 text-sm leading-relaxed italic">
+              "
+              {user?.bio ||
+                'Looking to get some people together to enjoy the beautiful city of Miami.'}
+              "
+            </p>
           </div>
         </div>
 
@@ -272,21 +186,21 @@ const PublicProfileScreen: React.FC = () => {
             {/* Languages */}
             {user?.languages && user.languages.length > 0 && (
               <button className="bg-black text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
-                Languages ({user.languages.length})
+                Language
               </button>
             )}
 
             {/* Hobbies */}
             {user?.hobbies && user.hobbies.length > 0 && (
               <button className="bg-black text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
-                Hobbies ({user.hobbies.length})
+                Sports
               </button>
             )}
 
             {/* Favorite state */}
             {user?.favorite_state && (
               <button className="bg-black text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
-                {user.favorite_state}
+                Favorite state
               </button>
             )}
 
@@ -300,7 +214,7 @@ const PublicProfileScreen: React.FC = () => {
             {/* Preferred outings */}
             {user?.preferred_outings && user.preferred_outings.length > 0 && (
               <button className="bg-black text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
-                Activities ({user.preferred_outings.length})
+                Activities
               </button>
             )}
 

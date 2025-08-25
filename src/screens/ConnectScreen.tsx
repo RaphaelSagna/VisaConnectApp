@@ -48,15 +48,6 @@ const ConnectScreen: React.FC = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Trigger search when debounced query changes
-  useEffect(() => {
-    if (debouncedQuery.trim().length >= 2) {
-      handleSearch();
-    } else if (debouncedQuery.trim().length === 0) {
-      setSearchResults([]);
-    }
-  }, [debouncedQuery, handleSearch]);
-
   const handleSearch = useCallback(async () => {
     if (!debouncedQuery.trim()) return;
 
@@ -89,7 +80,16 @@ const ConnectScreen: React.FC = () => {
     } finally {
       setIsSearching(false);
     }
-  };
+  }, [debouncedQuery]);
+
+  // Trigger search when debounced query changes
+  useEffect(() => {
+    if (debouncedQuery.trim().length >= 2) {
+      handleSearch();
+    } else if (debouncedQuery.trim().length === 0) {
+      setSearchResults([]);
+    }
+  }, [debouncedQuery, handleSearch]);
 
   const handleClearSearch = () => {
     setSearchQuery('');

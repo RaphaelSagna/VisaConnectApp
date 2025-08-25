@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useUserStore } from '../stores/userStore';
 import DrawerMenu from '../components/DrawerMenu';
@@ -49,6 +49,107 @@ const PublicProfileScreen: React.FC = () => {
     setIsDrawerOpen(false);
   };
 
+  // Calculate similarities between current user and profile user
+  const calculateSimilarities = useCallback(
+    (profileUser: ProfileUser) => {
+      if (!currentUser || !profileUser) return;
+
+      const similaritiesList: string[] = [];
+
+      // Visa type similarity
+      if (
+        currentUser.visa_type &&
+        profileUser.visa_type &&
+        currentUser.visa_type === profileUser.visa_type
+      ) {
+        similaritiesList.push(`${currentUser.visa_type} Visa`);
+      }
+
+      // Location similarity
+      if (currentUser.current_location && profileUser.current_location) {
+        if (
+          currentUser.current_location.state ===
+          profileUser.current_location.state
+        ) {
+          similaritiesList.push(
+            `${profileUser.current_location.state} Resident`
+          );
+        }
+        if (
+          currentUser.current_location.country ===
+          profileUser.current_location.country
+        ) {
+          similaritiesList.push(
+            `${profileUser.current_location.country} National`
+          );
+        }
+      }
+
+      // Language similarity
+      if (currentUser.languages && profileUser.languages) {
+        const commonLanguages = currentUser.languages.filter((lang) =>
+          profileUser.languages!.includes(lang)
+        );
+        if (commonLanguages.length > 0) {
+          similaritiesList.push(`${commonLanguages[0]} Speaker`);
+        }
+      }
+
+      // Hobby similarity
+      if (currentUser.hobbies && profileUser.hobbies) {
+        const commonHobbies = currentUser.hobbies.filter((hobby) =>
+          profileUser.hobbies!.includes(hobby)
+        );
+        if (commonHobbies.length > 0) {
+          similaritiesList.push(`${commonHobbies[0]} Enthusiast`);
+        }
+      }
+
+      // Favorite state similarity
+      if (
+        currentUser.favorite_state &&
+        profileUser.favorite_state &&
+        currentUser.favorite_state === profileUser.favorite_state
+      ) {
+        similaritiesList.push(`${profileUser.favorite_state} Lover`);
+      }
+
+      // Preferred outings similarity
+      if (currentUser.preferred_outings && profileUser.preferred_outings) {
+        const commonOutings = currentUser.preferred_outings.filter((outing) =>
+          profileUser.preferred_outings!.includes(outing)
+        );
+        if (commonOutings.length > 0) {
+          similaritiesList.push(`${commonOutings[0]} Fan`);
+        }
+      }
+
+      // Car ownership similarity
+      if (
+        currentUser.has_car !== undefined &&
+        profileUser.has_car !== undefined &&
+        currentUser.has_car === profileUser.has_car
+      ) {
+        similaritiesList.push(
+          currentUser.has_car ? 'Car Owner' : 'Public Transport User'
+        );
+      }
+
+      // Mentorship interest similarity
+      if (currentUser.mentorship_interest && profileUser.mentorship_interest) {
+        similaritiesList.push('Mentorship Interested');
+      }
+
+      // Willing to guide similarity
+      if (currentUser.willing_to_guide && profileUser.willing_to_guide) {
+        similaritiesList.push('Willing to Guide');
+      }
+
+      setSimilarities(similaritiesList);
+    },
+    [currentUser]
+  );
+
   // Fetch profile user data
   useEffect(() => {
     const fetchProfileUser = async () => {
@@ -80,102 +181,6 @@ const PublicProfileScreen: React.FC = () => {
 
     fetchProfileUser();
   }, [userId, calculateSimilarities]);
-
-  // Calculate similarities between current user and profile user
-  const calculateSimilarities = useCallback((profileUser: ProfileUser) => {
-    if (!currentUser || !profileUser) return;
-
-    const similaritiesList: string[] = [];
-
-    // Visa type similarity
-    if (
-      currentUser.visa_type &&
-      profileUser.visa_type &&
-      currentUser.visa_type === profileUser.visa_type
-    ) {
-      similaritiesList.push(`${currentUser.visa_type} Visa`);
-    }
-
-    // Location similarity
-    if (currentUser.current_location && profileUser.current_location) {
-      if (
-        currentUser.current_location.state ===
-        profileUser.current_location.state
-      ) {
-        similaritiesList.push(`${profileUser.current_location.state} Resident`);
-      }
-      if (
-        currentUser.current_location.country ===
-        profileUser.current_location.country
-      ) {
-        similaritiesList.push(
-          `${profileUser.current_location.country} National`
-        );
-      }
-    }
-
-    // Language similarity
-    if (currentUser.languages && profileUser.languages) {
-      const commonLanguages = currentUser.languages.filter((lang) =>
-        profileUser.languages!.includes(lang)
-      );
-      if (commonLanguages.length > 0) {
-        similaritiesList.push(`${commonLanguages[0]} Speaker`);
-      }
-    }
-
-    // Hobby similarity
-    if (currentUser.hobbies && profileUser.hobbies) {
-      const commonHobbies = currentUser.hobbies.filter((hobby) =>
-        profileUser.hobbies!.includes(hobby)
-      );
-      if (commonHobbies.length > 0) {
-        similaritiesList.push(`${commonHobbies[0]} Enthusiast`);
-      }
-    }
-
-    // Favorite state similarity
-    if (
-      currentUser.favorite_state &&
-      profileUser.favorite_state &&
-      currentUser.favorite_state === profileUser.favorite_state
-    ) {
-      similaritiesList.push(`${profileUser.favorite_state} Lover`);
-    }
-
-    // Preferred outings similarity
-    if (currentUser.preferred_outings && profileUser.preferred_outings) {
-      const commonOutings = currentUser.preferred_outings.filter((outing) =>
-        profileUser.preferred_outings!.includes(outing)
-      );
-      if (commonOutings.length > 0) {
-        similaritiesList.push(`${commonOutings[0]} Fan`);
-      }
-    }
-
-    // Car ownership similarity
-    if (
-      currentUser.has_car !== undefined &&
-      profileUser.has_car !== undefined &&
-      currentUser.has_car === profileUser.has_car
-    ) {
-      similaritiesList.push(
-        currentUser.has_car ? 'Car Owner' : 'Public Transport User'
-      );
-    }
-
-    // Mentorship interest similarity
-    if (currentUser.mentorship_interest && profileUser.mentorship_interest) {
-      similaritiesList.push('Mentorship Interested');
-    }
-
-    // Willing to guide similarity
-    if (currentUser.willing_to_guide && profileUser.willing_to_guide) {
-      similaritiesList.push('Willing to Guide');
-    }
-
-    setSimilarities(similaritiesList);
-  };
 
   const handleChatClick = () => {
     // Handle chat button click
@@ -256,7 +261,7 @@ const PublicProfileScreen: React.FC = () => {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                d="M8 12h.01M12h.01M16h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
               />
             </svg>
           </button>

@@ -164,6 +164,24 @@ class ChatService {
     }
   }
 
+  // Get a conversation by ID
+  async getConversation(conversationId: string): Promise<Conversation | null> {
+    try {
+      const doc = await getFirestore()
+        .collection('conversations')
+        .doc(conversationId)
+        .get();
+
+      if (doc.exists) {
+        return { id: doc.id, ...doc.data() } as Conversation;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching conversation:', error);
+      return null;
+    }
+  }
+
   // Get user's conversations
   async getUserConversations(userId: string): Promise<Conversation[]> {
     try {

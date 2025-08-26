@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import ChatList from '../components/ChatList';
 import Chat from '../components/Chat';
-import { useUserStore } from '../stores/userStore';
 
 const ChatScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -14,6 +13,7 @@ const ChatScreen: React.FC = () => {
   const [otherUserId, setOtherUserId] = useState<string>('');
   const [otherUserName, setOtherUserName] = useState<string>('');
   const [otherUserPhoto, setOtherUserPhoto] = useState<string>('');
+  const [otherUserDetails, setOtherUserDetails] = useState<any>(null);
 
   // Handle direct navigation to a specific conversation
   useEffect(() => {
@@ -35,24 +35,61 @@ const ChatScreen: React.FC = () => {
     }
   }, [conversationId, location.state]);
 
+  // Fetch user details when conversation is selected
+  useEffect(() => {
+    if (selectedConversationId && otherUserId) {
+      fetchUserDetails(selectedConversationId);
+    }
+  }, [selectedConversationId, otherUserId]);
+
+  // Function to fetch user details from the database
+  const fetchUserDetails = async (conversationId: string) => {
+    try {
+      const response = await fetch(
+        `/api/chat/conversations/${conversationId}/user-info`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setOtherUserDetails(data.data);
+          // Update the name and photo if we have better data
+          if (data.data.fullName && data.data.fullName !== 'User') {
+            setOtherUserName(data.data.fullName);
+          }
+          if (data.data.profilePhotoUrl) {
+            setOtherUserPhoto(data.data.profilePhotoUrl);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+    }
+  };
+
   const handleSelectConversation = (
     conversationId: string,
     otherUserId: string,
-    otherUserName: string
+    otherUserName: string,
+    otherUserPhoto?: string
   ) => {
     setSelectedConversationId(conversationId);
     setOtherUserId(otherUserId);
     setOtherUserName(otherUserName);
-    // In production, you'd fetch the other user's photo here
-    setOtherUserPhoto('');
+    setOtherUserPhoto(otherUserPhoto || '');
   };
 
   // If a conversation is selected, show the chat view
   if (selectedConversationId) {
     return (
-      <div className="flex flex-col bg-white h-full">
+      <div className="flex flex-col bg-gray-50 h-full">
         {/* Chat Header */}
-        <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center relative">
+        <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center relative">
           <button
             onClick={() => {
               setSelectedConversationId('');
@@ -89,12 +126,26 @@ const ChatScreen: React.FC = () => {
             ) : (
               <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
                 <span className="text-gray-600 font-medium">
-                  {otherUserName.charAt(0).toUpperCase()}
+                  {(otherUserDetails?.fullName || otherUserName)
+                    .charAt(0)
+                    .toUpperCase()}
                 </span>
               </div>
             )}
-            <div>
-              <h2 className="font-semibold text-gray-900">{otherUserName}</h2>
+            <div className="text-center">
+              <h2 className="font-semibold text-gray-900">
+                {otherUserDetails?.fullName || otherUserName}
+              </h2>
+              {otherUserDetails && (
+                <div className="text-xs text-gray-500 mt-1">
+                  {otherUserDetails.occupation && (
+                    <span className="block">{otherUserDetails.occupation}</span>
+                  )}
+                  {otherUserDetails.visaType && (
+                    <span className="block">{otherUserDetails.visaType}</span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

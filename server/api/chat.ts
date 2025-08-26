@@ -1,9 +1,12 @@
 import { Express, Request, Response } from 'express';
 import { authenticateUser } from '../middleware/auth';
 import { chatService } from '../services/chatService';
+import { UserService } from '../services/userService';
 
 export default function chatApi(app: Express) {
-  // Get user's conversations
+  const userService = new UserService();
+
+  // Get user's conversations with user details
   app.get(
     '/api/chat/conversations',
     authenticateUser,
@@ -17,12 +20,115 @@ export default function chatApi(app: Express) {
         }
 
         const conversations = await chatService.getUserConversations(userId);
-        res.json({ success: true, data: conversations });
+
+        // Enhance conversations with user details
+        const enhancedConversations = await Promise.all(
+          conversations.map(async (conversation) => {
+            const otherUserId = conversation.participants.find(
+              (id: string) => id !== userId
+            );
+            if (otherUserId) {
+              try {
+                const otherUser = await userService.getUserById(otherUserId);
+                return {
+                  ...conversation,
+                  otherUser: otherUser
+                    ? {
+                        id: otherUser.id,
+                        firstName: otherUser.first_name,
+                        lastName: otherUser.last_name,
+                        fullName:
+                          `${otherUser.first_name || ''} ${
+                            otherUser.last_name || ''
+                          }`.trim() || 'User',
+                        profilePhotoUrl: otherUser.profile_photo_url,
+                        occupation: otherUser.occupation,
+                        visaType: otherUser.visa_type,
+                      }
+                    : null,
+                };
+              } catch (error) {
+                console.error(`Error fetching user ${otherUserId}:`, error);
+                return {
+                  ...conversation,
+                  otherUser: null,
+                };
+              }
+            }
+            return conversation;
+          })
+        );
+
+        res.json({ success: true, data: enhancedConversations });
       } catch (error) {
         console.error('Error fetching conversations:', error);
         res
           .status(500)
           .json({ success: false, message: 'Failed to fetch conversations' });
+      }
+    }
+  );
+
+  // Get user information for a conversation
+  app.get(
+    '/api/chat/conversations/:conversationId/user-info',
+    authenticateUser,
+    async (req: Request, res: Response) => {
+      try {
+        const { conversationId } = req.params;
+        const userId = req.user?.uid;
+
+        if (!userId) {
+          return res
+            .status(401)
+            .json({ success: false, message: 'User not authenticated' });
+        }
+
+        const conversation = await chatService.getConversation(conversationId);
+        if (!conversation) {
+          return res
+            .status(404)
+            .json({ success: false, message: 'Conversation not found' });
+        }
+
+        const otherUserId = conversation.participants.find(
+          (id: string) => id !== userId
+        );
+        if (!otherUserId) {
+          return res
+            .status(400)
+            .json({ success: false, message: 'Invalid conversation' });
+        }
+
+        const otherUser = await userService.getUserById(otherUserId);
+        if (!otherUser) {
+          return res
+            .status(404)
+            .json({ success: false, message: 'User not found' });
+        }
+
+        res.json({
+          success: true,
+          data: {
+            id: otherUser.id,
+            firstName: otherUser.first_name,
+            lastName: otherUser.last_name,
+            fullName:
+              `${otherUser.first_name || ''} ${
+                otherUser.last_name || ''
+              }`.trim() || 'User',
+            profilePhotoUrl: otherUser.profile_photo_url,
+            occupation: otherUser.occupation,
+            visaType: otherUser.visa_type,
+            currentLocation: otherUser.current_location,
+            bio: otherUser.bio,
+          },
+        });
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+        res
+          .status(500)
+          .json({ success: false, message: 'Failed to fetch user info' });
       }
     }
   );

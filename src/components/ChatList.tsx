@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useUserStore } from '../stores/userStore';
 import { chatService, Conversation } from '../api/chatService';
-import { ChatBubbleLeftIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 
 interface ChatListProps {
   onSelectConversation: (
     conversationId: string,
     otherUserId: string,
-    otherUserName: string
+    otherUserName: string,
+    otherUserPhoto?: string
   ) => void;
   selectedConversationId?: string;
 }
@@ -19,7 +20,6 @@ const ChatList: React.FC<ChatListProps> = ({
   const { user } = useUserStore();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Listen to user's conversations with real-time updates
   useEffect(() => {
@@ -36,42 +36,34 @@ const ChatList: React.FC<ChatListProps> = ({
     return () => unsubscribe();
   }, [user?.uid]);
 
-  // Manual refresh function
-  const handleRefresh = async () => {
-    if (!user?.uid) return;
-
-    setIsRefreshing(true);
-    try {
-      const conversations = await chatService.getConversations();
-      setConversations(conversations);
-    } catch (error) {
-      console.error('Error refreshing conversations:', error);
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
   // Get the other user's ID from a conversation
   const getOtherUserId = (conversation: Conversation): string => {
     if (!user?.uid) return '';
     return conversation.participants.find((id) => id !== user.uid) || '';
   };
 
-  // Get the other user's name (this would need to be fetched from user data)
+  // Get the other user's name from enhanced conversation data
   const getOtherUserName = (conversation: Conversation): string => {
-    // For now, we'll use a placeholder
-    // In production, you'd want to fetch user details or store them in the conversation
-    // You can enhance this by storing user names in the conversation or fetching from user service
+    // Check if we have enhanced user data from the API
+    if ((conversation as any).otherUser?.fullName) {
+      return (conversation as any).otherUser.fullName;
+    }
+
+    // Fallback to user ID if no name is available
     const otherUserId = getOtherUserId(conversation);
     return otherUserId ? `User ${otherUserId.slice(-4)}` : 'User';
   };
 
-  // Get the other user's photo (this would need to be fetched from user data)
+  // Get the other user's photo from enhanced conversation data
   const getOtherUserPhoto = (
     conversation: Conversation
   ): string | undefined => {
-    // For now, we'll return undefined to use initials
-    // In production, you'd want to fetch user details or store them in the conversation
+    // Check if we have enhanced user data from the API
+    if ((conversation as any).otherUser?.profilePhotoUrl) {
+      return (conversation as any).otherUser.profilePhotoUrl;
+    }
+
+    // Return undefined to use initials fallback
     return undefined;
   };
 
@@ -178,7 +170,8 @@ const ChatList: React.FC<ChatListProps> = ({
                 onSelectConversation(
                   conversation.id!,
                   otherUserId,
-                  otherUserName
+                  otherUserName,
+                  otherUserPhoto
                 )
               }
               className={`px-4 py-3 bg-transparent border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${

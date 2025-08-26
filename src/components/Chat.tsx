@@ -137,7 +137,7 @@ const Chat: React.FC<ChatProps> = ({
   }
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-gray-50">
       {/* Messages Area */}
       <div
         ref={messagesContainerRef}
@@ -203,7 +203,7 @@ const Chat: React.FC<ChatProps> = ({
       </div>
 
       {/* Message Input */}
-      <div className="p-4 bg-white border-t border-gray-200">
+      <div className="p-4 bg-gray-50 border-t border-gray-200">
         <form
           onSubmit={handleSendMessage}
           className="flex items-center space-x-3"

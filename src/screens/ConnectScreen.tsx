@@ -31,10 +31,6 @@ const ConnectScreen: React.FC = () => {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  const handleMenuClick = () => {
-    setIsDrawerOpen(true);
-  };
-
   const handleOverlayClick = () => {
     setIsDrawerOpen(false);
   };

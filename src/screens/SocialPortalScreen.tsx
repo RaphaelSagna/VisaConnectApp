@@ -7,10 +7,6 @@ const SocialPortalScreen: React.FC = () => {
   const navigate = useNavigate();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  const handleMenuClick = () => {
-    setIsDrawerOpen(true);
-  };
-
   const handleOverlayClick = () => {
     setIsDrawerOpen(false);
   };

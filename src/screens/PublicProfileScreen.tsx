@@ -41,10 +41,6 @@ const PublicProfileScreen: React.FC = () => {
   const [similarities, setSimilarities] = useState<string[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  const handleMenuClick = () => {
-    setIsDrawerOpen(true);
-  };
-
   const handleOverlayClick = () => {
     setIsDrawerOpen(false);
   };

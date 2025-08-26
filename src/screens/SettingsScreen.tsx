@@ -61,7 +61,6 @@ const SettingsScreen: React.FC = () => {
     },
   ];
 
-  const handleMenuClick = () => setMenuOpen(true);
   const handleOverlayClick = () => setMenuOpen(false);
 
   return (

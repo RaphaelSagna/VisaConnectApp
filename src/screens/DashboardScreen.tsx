@@ -25,7 +25,6 @@ const DashboardScreen: React.FC = () => {
     }
   }, [user]);
 
-  const handleMenuClick = () => setIsDrawerOpen(true);
   const handleOverlayClick = () => setIsDrawerOpen(false);
 
   return (

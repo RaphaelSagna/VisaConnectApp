@@ -19,7 +19,6 @@ const Chat: React.FC<ChatProps> = ({
   const { user } = useUserStore();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Listen to messages in this conversation with real-time updates
@@ -42,25 +41,54 @@ const Chat: React.FC<ChatProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Send a new message
+  // Send a new message with optimistic updates
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !user) return;
 
-    setIsLoading(true);
+    const messageContent = newMessage.trim();
+    const tempMessageId = `temp-${Date.now()}`;
+
+    // Create optimistic message (appears immediately)
+    const optimisticMessage: Message = {
+      id: tempMessageId,
+      senderId: user.uid,
+      receiverId: otherUserId,
+      content: messageContent,
+      timestamp: new Date(),
+      read: false,
+    };
+
+    // Add message to UI immediately (optimistic update)
+    setMessages((prev) => [...prev, optimisticMessage]);
+    setNewMessage('');
+
+    // Scroll to bottom to show new message
+    setTimeout(() => scrollToBottom(), 100);
+
     try {
-      await chatService.sendMessage(conversationId, {
+      // Send message to server
+      const messageId = await chatService.sendMessage(conversationId, {
         senderId: user.uid,
         receiverId: otherUserId,
-        content: newMessage.trim(),
+        content: messageContent,
         read: false,
       });
-      setNewMessage('');
+
+      // Replace optimistic message with real message
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === tempMessageId ? { ...msg, id: messageId } : msg
+        )
+      );
     } catch (error) {
       console.error('Failed to send message:', error);
+
+      // Remove optimistic message on error and show error state
+      setMessages((prev) => prev.filter((msg) => msg.id !== tempMessageId));
+
       // You might want to show an error toast here
-    } finally {
-      setIsLoading(false);
+      // For now, we'll just log the error
     }
   };
 
@@ -116,15 +144,33 @@ const Chat: React.FC<ChatProps> = ({
                     isOwnMessage
                       ? 'bg-blue-500 text-white'
                       : 'bg-gray-100 text-gray-900'
-                  }`}
+                  } ${message.id?.startsWith('temp-') ? 'opacity-70' : ''}`}
                 >
-                  <p className="text-sm">{message.content}</p>
+                  <div className="flex items-center space-x-2">
+                    <p className="text-sm">{message.content}</p>
+                    {message.id?.startsWith('temp-') && (
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-current rounded-full animate-pulse"></div>
+                        <div
+                          className="w-2 h-2 bg-current rounded-full animate-pulse"
+                          style={{ animationDelay: '0.2s' }}
+                        ></div>
+                        <div
+                          className="w-2 h-2 bg-current rounded-full animate-pulse"
+                          style={{ animationDelay: '0.4s' }}
+                        ></div>
+                      </div>
+                    )}
+                  </div>
                   <p
                     className={`text-xs mt-1 ${
                       isOwnMessage ? 'text-blue-100' : 'text-gray-500'
                     }`}
                   >
                     {formatTime(message.timestamp)}
+                    {message.id?.startsWith('temp-') && (
+                      <span className="ml-2 text-xs">Sending...</span>
+                    )}
                   </p>
                 </div>
               </div>
@@ -142,18 +188,36 @@ const Chat: React.FC<ChatProps> = ({
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type a message..."
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            disabled={isLoading}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+            disabled={false} // Always enabled for better UX
           />
           <button
             type="submit"
-            disabled={!newMessage.trim() || isLoading}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+            disabled={!newMessage.trim()}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 transition-colors duration-200"
           >
             <PaperAirplaneIcon className="w-4 h-4" />
             <span className="hidden sm:inline">Send</span>
           </button>
         </form>
+
+        {/* Typing indicators */}
+        {messages.some((msg) => msg.id?.startsWith('temp-')) && (
+          <div className="mt-2 text-xs text-gray-500 flex items-center space-x-1">
+            <div className="flex space-x-1">
+              <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse"></div>
+              <div
+                className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse"
+                style={{ animationDelay: '0.2s' }}
+              ></div>
+              <div
+                className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse"
+                style={{ animationDelay: '0.4s' }}
+              ></div>
+            </div>
+            <span>Message sending...</span>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -181,29 +181,67 @@ class ChatService {
     conversationId: string,
     callback: (messages: Message[]) => void
   ): () => void {
-    // For now, we'll use polling but with better error handling
-    // In the future, this can be replaced with actual Firestore listeners
+    // Try Firestore listener; fallback to polling on failure
+    try {
+      // Lazy require to avoid hard dependency if env vars are missing
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const {
+        ensureFirebase,
+        ensureSignedInAnonymously,
+      } = require('./firebase');
+      const bundle = ensureFirebase?.();
+      if (!bundle) throw new Error('Firebase not configured');
+      const { db } = bundle;
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const {
+        collection,
+        query,
+        orderBy,
+        onSnapshot,
+      } = require('firebase/firestore');
+
+      ensureSignedInAnonymously?.().catch(() => undefined);
+
+      const q = query(
+        collection(db, 'conversations', conversationId, 'messages'),
+        orderBy('timestamp', 'asc')
+      );
+
+      const unsub = onSnapshot(
+        q,
+        (snap: any) => {
+          const msgs: Message[] = [];
+          snap.forEach((doc: any) => msgs.push({ id: doc.id, ...doc.data() }));
+          callback(msgs);
+        },
+        (_err: any) => {
+          unsub();
+          return this._startMessagesPolling(conversationId, callback);
+        }
+      );
+
+      return () => unsub();
+    } catch (_e) {
+      return this._startMessagesPolling(conversationId, callback);
+    }
+  }
+
+  private _startMessagesPolling(
+    conversationId: string,
+    callback: (messages: Message[]) => void
+  ): () => void {
     let isActive = true;
-
-    const pollMessages = async () => {
+    const poll = async () => {
       if (!isActive) return;
-
       try {
         const messages = await this.getMessages(conversationId);
         callback(messages);
       } catch (error) {
         console.error('Error polling messages:', error);
-        // Don't stop polling on error, just log it
       }
-
-      if (isActive) {
-        setTimeout(pollMessages, 3000); // Poll every 3 seconds
-      }
+      if (isActive) setTimeout(poll, 2000);
     };
-
-    pollMessages();
-
-    // Return cleanup function
+    poll();
     return () => {
       isActive = false;
     };
@@ -213,29 +251,67 @@ class ChatService {
     userId: string,
     callback: (conversations: Conversation[]) => void
   ): () => void {
-    // For now, we'll use polling but with better error handling
-    // In the future, this can be replaced with actual Firestore listeners
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const {
+        ensureFirebase,
+        ensureSignedInAnonymously,
+      } = require('./firebase');
+      const bundle = ensureFirebase?.();
+      if (!bundle) throw new Error('Firebase not configured');
+      const { db } = bundle;
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const {
+        collection,
+        query,
+        where,
+        orderBy,
+        onSnapshot,
+      } = require('firebase/firestore');
+
+      ensureSignedInAnonymously?.().catch(() => undefined);
+
+      const q = query(
+        collection(db, 'conversations'),
+        where('participants', 'array-contains', userId),
+        orderBy('lastMessageTime', 'desc')
+      );
+
+      const unsub = onSnapshot(
+        q,
+        (snap: any) => {
+          const rows: Conversation[] = [];
+          snap.forEach((doc: any) => rows.push({ id: doc.id, ...doc.data() }));
+          callback(rows);
+        },
+        (_err: any) => {
+          unsub();
+          return this._startConversationsPolling(userId, callback);
+        }
+      );
+
+      return () => unsub();
+    } catch (_e) {
+      return this._startConversationsPolling(userId, callback);
+    }
+  }
+
+  private _startConversationsPolling(
+    _userId: string,
+    callback: (conversations: Conversation[]) => void
+  ): () => void {
     let isActive = true;
-
-    const pollConversations = async () => {
+    const poll = async () => {
       if (!isActive) return;
-
       try {
         const conversations = await this.getConversations();
         callback(conversations);
       } catch (error) {
         console.error('Error polling conversations:', error);
-        // Don't stop polling on error, just log it
       }
-
-      if (isActive) {
-        setTimeout(pollConversations, 5000); // Poll every 5 seconds
-      }
+      if (isActive) setTimeout(poll, 4000);
     };
-
-    pollConversations();
-
-    // Return cleanup function
+    poll();
     return () => {
       isActive = false;
     };

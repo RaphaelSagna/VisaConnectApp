@@ -179,8 +179,9 @@ const PublicProfileScreen: React.FC = () => {
   }, [userId, calculateSimilarities]);
 
   const handleChatClick = () => {
-    // Handle chat button click
-    console.log('Chat clicked');
+    // Navigate to chat screen
+    navigate('/chat');
+    // TODO: In the future, we can pass the user info to start a conversation directly
   };
 
   // Helper function to format travel experience

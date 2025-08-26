@@ -11,8 +11,9 @@ import pool from './db/config';
 import authApi from './api/auth';
 import userApi from './api/user';
 import photoApi from './api/photo';
+import chatApi from './api/chat';
 
-// Initialize Firebase Admin SDK
+// Initialize Firebase Admin SDK FIRST
 let serviceAccount: ServiceAccount;
 
 if (process.env.FIREBASE_SERVICE_ACCOUNT) {
@@ -103,6 +104,7 @@ app.get('/api/health', async (req: Request, res: Response) => {
 authApi(app);
 userApi(app);
 photoApi(app);
+chatApi(app);
 
 // Only serve static files in production
 if (process.env.NODE_ENV !== 'development') {

@@ -20,6 +20,7 @@ const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({
     if (pathname.startsWith('/public-profile')) return 'dashboard';
     if (pathname === '/social') return 'social';
     if (pathname === '/connect') return 'social';
+    if (pathname === '/chat') return 'chat';
     if (
       pathname === '/background' ||
       pathname === '/lifestyle' ||

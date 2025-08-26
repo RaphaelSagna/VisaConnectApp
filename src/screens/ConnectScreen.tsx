@@ -101,6 +101,12 @@ const ConnectScreen: React.FC = () => {
     navigate(`/public-profile/${userId}`);
   };
 
+  const handleStartChat = (userId: string, userName: string) => {
+    // Navigate to chat screen
+    navigate(`/chat`);
+    // TODO: In the future, we can pass the user info to start a conversation directly
+  };
+
   return (
     <div>
       <DrawerMenu
@@ -189,14 +195,29 @@ const ConnectScreen: React.FC = () => {
                       </p>
                     </div>
 
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => handleConnect(user.id)}
-                      className="px-4 py-2"
-                    >
-                      Connect
-                    </Button>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => handleConnect(user.id)}
+                        className="px-4 py-2"
+                      >
+                        Connect
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() =>
+                          handleStartChat(
+                            user.id,
+                            `${user.first_name} ${user.last_name}`
+                          )
+                        }
+                        className="px-4 py-2"
+                      >
+                        Chat
+                      </Button>
+                    </div>
                   </div>
 
                   {/* User Details */}

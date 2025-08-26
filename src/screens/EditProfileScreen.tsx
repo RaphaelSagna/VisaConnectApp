@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '../stores/userStore';
-import NavigationBar from '../components/NavigationBar';
 import PhotoUpload from '../components/PhotoUpload';
 import { uploadProfilePhoto } from '../api/cloudinary';
 
@@ -89,12 +88,9 @@ const EditProfileScreen: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col relative">
-      {/* Shared Navigation Bar */}
-      <NavigationBar currentPage="settings" onMenuClick={() => {}} />
-
+    <div>
       {/* Main Content */}
-      <div className="flex-1 px-4 py-6 max-w-md mx-auto w-full">
+      <div className="px-4 py-6 max-w-2xl mx-auto w-full">
         {/* Profile Header */}
         <div className="text-center mb-6">
           <div className="relative inline-block mb-4">

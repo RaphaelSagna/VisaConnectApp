@@ -11,10 +11,13 @@ import SignInScreen from './screens/LoginScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import EditProfileScreen from './screens/EditProfileScreen';
 import PublicProfileScreen from './screens/PublicProfileScreen';
+import SocialPortalScreen from './screens/SocialPortalScreen';
+import ConnectScreen from './screens/ConnectScreen';
 import TravelExplorationScreen from './screens/wizard/TravelExplorationScreen';
 import KnowledgeCommunityScreen from './screens/wizard/KnowledgeCommunityScreen';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import AuthenticatedRoute from './components/AuthenticatedRoute';
+import AuthenticatedLayout from './components/AuthenticatedLayout';
 
 function App() {
   return (
@@ -30,7 +33,9 @@ function App() {
           path="/dashboard"
           element={
             <AuthenticatedRoute>
-              <DashboardScreen />
+              <AuthenticatedLayout>
+                <DashboardScreen />
+              </AuthenticatedLayout>
             </AuthenticatedRoute>
           }
         />
@@ -38,7 +43,9 @@ function App() {
           path="/settings"
           element={
             <AuthenticatedRoute>
-              <SettingsScreen />
+              <AuthenticatedLayout>
+                <SettingsScreen />
+              </AuthenticatedLayout>
             </AuthenticatedRoute>
           }
         />
@@ -46,7 +53,9 @@ function App() {
           path="/edit-profile"
           element={
             <AuthenticatedRoute>
-              <EditProfileScreen />
+              <AuthenticatedLayout>
+                <EditProfileScreen />
+              </AuthenticatedLayout>
             </AuthenticatedRoute>
           }
         />
@@ -54,7 +63,39 @@ function App() {
           path="/public-profile"
           element={
             <AuthenticatedRoute>
-              <PublicProfileScreen />
+              <AuthenticatedLayout>
+                <PublicProfileScreen />
+              </AuthenticatedLayout>
+            </AuthenticatedRoute>
+          }
+        />
+        <Route
+          path="/public-profile/:userId"
+          element={
+            <AuthenticatedRoute>
+              <AuthenticatedLayout>
+                <PublicProfileScreen />
+              </AuthenticatedLayout>
+            </AuthenticatedRoute>
+          }
+        />
+        <Route
+          path="/social"
+          element={
+            <AuthenticatedRoute>
+              <AuthenticatedLayout>
+                <SocialPortalScreen />
+              </AuthenticatedLayout>
+            </AuthenticatedRoute>
+          }
+        />
+        <Route
+          path="/connect"
+          element={
+            <AuthenticatedRoute>
+              <AuthenticatedLayout>
+                <ConnectScreen />
+              </AuthenticatedLayout>
             </AuthenticatedRoute>
           }
         />
@@ -62,7 +103,9 @@ function App() {
           path="/background"
           element={
             <AuthenticatedRoute>
-              <BackgroundScreen />
+              <AuthenticatedLayout>
+                <BackgroundScreen />
+              </AuthenticatedLayout>
             </AuthenticatedRoute>
           }
         />
@@ -70,7 +113,9 @@ function App() {
           path="/lifestyle"
           element={
             <AuthenticatedRoute>
-              <LifestyleScreen />
+              <AuthenticatedLayout>
+                <LifestyleScreen />
+              </AuthenticatedLayout>
             </AuthenticatedRoute>
           }
         />
@@ -78,7 +123,9 @@ function App() {
           path="/travel-exploration"
           element={
             <AuthenticatedRoute>
-              <TravelExplorationScreen />
+              <AuthenticatedLayout>
+                <TravelExplorationScreen />
+              </AuthenticatedLayout>
             </AuthenticatedRoute>
           }
         />
@@ -86,7 +133,9 @@ function App() {
           path="/knowledge-community"
           element={
             <AuthenticatedRoute>
-              <KnowledgeCommunityScreen />
+              <AuthenticatedLayout>
+                <KnowledgeCommunityScreen />
+              </AuthenticatedLayout>
             </AuthenticatedRoute>
           }
         />
@@ -94,7 +143,9 @@ function App() {
           path="/account-created"
           element={
             <AuthenticatedRoute>
-              <AccountCreatedPage />
+              <AuthenticatedLayout>
+                <AccountCreatedPage />
+              </AuthenticatedLayout>
             </AuthenticatedRoute>
           }
         />

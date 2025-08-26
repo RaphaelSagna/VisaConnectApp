@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DrawerMenu from '../components/DrawerMenu';
-import NavigationBar from '../components/NavigationBar';
 import ResponsiveTest from '../components/ResponsiveTest';
 import {
   UserIcon,
@@ -62,11 +61,10 @@ const SettingsScreen: React.FC = () => {
     },
   ];
 
-  const handleMenuClick = () => setMenuOpen(true);
   const handleOverlayClick = () => setMenuOpen(false);
 
   return (
-    <div className="min-h-screen bg-gray-50 relative">
+    <div>
       <DrawerMenu
         open={menuOpen}
         onClose={handleOverlayClick}
@@ -74,11 +72,8 @@ const SettingsScreen: React.FC = () => {
         highlight="settings"
       />
 
-      {/* Shared Navigation Bar */}
-      <NavigationBar currentPage="settings" onMenuClick={handleMenuClick} />
-
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         {/* Page Title */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Settings</h1>

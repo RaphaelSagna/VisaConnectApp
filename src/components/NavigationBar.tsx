@@ -19,7 +19,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', key: 'dashboard', enabled: true },
     { name: 'Work', path: '/work', key: 'work', enabled: false },
-    { name: 'Social', path: '/social', key: 'social', enabled: false },
+    { name: 'Social', path: '/social', key: 'social', enabled: true },
     { name: 'Chat', path: '/chat', key: 'chat', enabled: false },
     { name: 'Settings', path: '/settings', key: 'settings', enabled: true },
     { name: 'Contact', path: '/contact', key: 'contact', enabled: false },
@@ -33,7 +33,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({
 
   return (
     <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto px-4 md:px-6">
         <div className="flex items-center justify-between h-16">
           {/* Left side - Mobile menu button and Logo */}
           <div className="flex items-center space-x-4">

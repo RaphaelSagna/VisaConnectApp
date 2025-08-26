@@ -355,4 +355,47 @@ export default function userApi(app: Express) {
       }
     }
   );
+
+  // Search users by text query (for Connect screen)
+  app.get(
+    '/api/users/search',
+    authenticateUser,
+    async (req: Request, res: Response) => {
+      try {
+        const { q: searchQuery } = req.query;
+        const currentUserId = req.user!.uid;
+
+        if (!searchQuery || typeof searchQuery !== 'string') {
+          return res.status(400).json({
+            error: 'Invalid search query',
+            message: 'Search query is required',
+          });
+        }
+
+        if (searchQuery.trim().length < 2) {
+          return res.status(400).json({
+            error: 'Search query too short',
+            message: 'Search query must be at least 2 characters',
+          });
+        }
+
+        const users = await userService.searchUsersByText(
+          searchQuery.trim(),
+          currentUserId
+        );
+
+        res.json({
+          success: true,
+          data: users,
+          count: users.length,
+        });
+      } catch (error: any) {
+        console.error('User search error:', error);
+        res.status(500).json({
+          error: 'Search failed',
+          message: error.message || 'Failed to search users',
+        });
+      }
+    }
+  );
 }

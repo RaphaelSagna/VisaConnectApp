@@ -33,6 +33,7 @@ export interface Conversation {
 class ChatService {
   // Create a new conversation between two users
   async createConversation(userId1: string, userId2: string): Promise<string> {
+    console.log('Creating conversation between: ', userId1, userId2);
     try {
       const conversationData: Omit<Conversation, 'id'> = {
         participants: [userId1, userId2].sort(),

@@ -1,17 +1,39 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import ChatList from '../components/ChatList';
 import Chat from '../components/Chat';
 import { useUserStore } from '../stores/userStore';
 
 const ChatScreen: React.FC = () => {
   const navigate = useNavigate();
+  const { conversationId } = useParams<{ conversationId: string }>();
+  const location = useLocation();
 
   const [selectedConversationId, setSelectedConversationId] =
     useState<string>('');
   const [otherUserId, setOtherUserId] = useState<string>('');
   const [otherUserName, setOtherUserName] = useState<string>('');
   const [otherUserPhoto, setOtherUserPhoto] = useState<string>('');
+
+  // Handle direct navigation to a specific conversation
+  useEffect(() => {
+    if (conversationId) {
+      setSelectedConversationId(conversationId);
+
+      // Get user info from location state (passed from PublicProfileScreen)
+      if (location.state) {
+        const { otherUserId, otherUserName, otherUserPhoto } =
+          location.state as {
+            otherUserId: string;
+            otherUserName: string;
+            otherUserPhoto: string | null;
+          };
+        setOtherUserId(otherUserId);
+        setOtherUserName(otherUserName);
+        setOtherUserPhoto(otherUserPhoto || '');
+      }
+    }
+  }, [conversationId, location.state]);
 
   const handleSelectConversation = (
     conversationId: string,
@@ -32,7 +54,13 @@ const ChatScreen: React.FC = () => {
         {/* Chat Header */}
         <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center">
           <button
-            onClick={() => setSelectedConversationId('')}
+            onClick={() => {
+              setSelectedConversationId('');
+              // If we came from a direct conversation URL, go back to chat list
+              if (conversationId) {
+                navigate('/chat');
+              }
+            }}
             className="mr-3 p-1"
           >
             <svg
@@ -50,11 +78,19 @@ const ChatScreen: React.FC = () => {
             </svg>
           </button>
           <div className="flex items-center flex-1">
-            <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
-              <span className="text-gray-600 font-medium">
-                {otherUserName.charAt(0).toUpperCase()}
-              </span>
-            </div>
+            {otherUserPhoto ? (
+              <img
+                src={otherUserPhoto}
+                alt={otherUserName}
+                className="w-10 h-10 rounded-full object-cover mr-3"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
+                <span className="text-gray-600 font-medium">
+                  {otherUserName.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
             <div>
               <h2 className="font-semibold text-gray-900">{otherUserName}</h2>
             </div>

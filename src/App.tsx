@@ -111,6 +111,16 @@ function App() {
           }
         />
         <Route
+          path="/chat/:conversationId"
+          element={
+            <AuthenticatedRoute>
+              <AuthenticatedLayout>
+                <ChatScreen />
+              </AuthenticatedLayout>
+            </AuthenticatedRoute>
+          }
+        />
+        <Route
           path="/background"
           element={
             <AuthenticatedRoute>

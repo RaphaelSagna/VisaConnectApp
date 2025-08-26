@@ -101,7 +101,7 @@ export default function chatApi(app: Express) {
     authenticateUser,
     async (req: Request, res: Response) => {
       try {
-        const { otherUserId } = req.body;
+        const { participantIds } = req.body;
         const currentUserId = req.user?.uid;
 
         if (!currentUserId) {
@@ -110,17 +110,31 @@ export default function chatApi(app: Express) {
             .json({ success: false, message: 'User not authenticated' });
         }
 
+        if (
+          !participantIds ||
+          !Array.isArray(participantIds) ||
+          participantIds.length !== 2
+        ) {
+          return res.status(400).json({
+            success: false,
+            message: 'Missing or invalid participant IDs',
+          });
+        }
+
+        // Find the other user ID (not the current user)
+        const otherUserId = participantIds.find((id) => id !== currentUserId);
+
         if (!otherUserId) {
           return res
             .status(400)
-            .json({ success: false, message: 'Missing other user ID' });
+            .json({ success: false, message: 'Invalid participant IDs' });
         }
 
         const conversationId = await chatService.getOrCreateConversation(
           currentUserId,
           otherUserId
         );
-        res.json({ success: true, data: { conversationId } });
+        res.json({ success: true, data: { id: conversationId } });
       } catch (error) {
         console.error('Error creating conversation:', error);
         res

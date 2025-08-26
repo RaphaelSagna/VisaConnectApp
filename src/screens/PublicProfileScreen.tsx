@@ -198,21 +198,27 @@ const PublicProfileScreen: React.FC = () => {
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          // Navigate to chat screen with the conversation
-          navigate('/chat');
+          // Navigate directly to the specific conversation
+          navigate(`/chat/${result.data.id}`, {
+            state: {
+              otherUserId: profileUser.id,
+              otherUserName: `${profileUser.first_name} ${profileUser.last_name}`,
+              otherUserPhoto: profileUser.profile_photo_url || null,
+            },
+          });
         } else {
           console.error('Failed to create conversation:', result.message);
-          // Fallback: just navigate to chat
+          // Fallback: navigate to general chat
           navigate('/chat');
         }
       } else {
         console.error('Failed to create conversation');
-        // Fallback: just navigate to chat
+        // Fallback: navigate to general chat
         navigate('/chat');
       }
     } catch (error) {
       console.error('Error creating conversation:', error);
-      // Fallback: just navigate to chat
+      // Fallback: navigate to general chat
       navigate('/chat');
     }
   };

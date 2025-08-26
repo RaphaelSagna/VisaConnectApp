@@ -178,10 +178,43 @@ const PublicProfileScreen: React.FC = () => {
     fetchProfileUser();
   }, [userId, calculateSimilarities]);
 
-  const handleChatClick = () => {
-    // Navigate to chat screen
-    navigate('/chat');
-    // TODO: In the future, we can pass the user info to start a conversation directly
+  const handleChatClick = async () => {
+    if (!profileUser || !currentUser) return;
+
+    try {
+      // Create or get existing conversation with this user
+      const token = localStorage.getItem('userToken');
+      const response = await fetch('/api/chat/conversations', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          participantIds: [currentUser.uid, profileUser.id],
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          // Navigate to chat screen with the conversation
+          navigate('/chat');
+        } else {
+          console.error('Failed to create conversation:', result.message);
+          // Fallback: just navigate to chat
+          navigate('/chat');
+        }
+      } else {
+        console.error('Failed to create conversation');
+        // Fallback: just navigate to chat
+        navigate('/chat');
+      }
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      // Fallback: just navigate to chat
+      navigate('/chat');
+    }
   };
 
   // Helper function to format travel experience
@@ -245,20 +278,27 @@ const PublicProfileScreen: React.FC = () => {
           {/* Chat Icon - Right side */}
           <button
             onClick={handleChatClick}
-            className="w-10 p-2 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-            aria-label="Chat"
+            className="w-12 h-12 rounded-full bg-transparent text-black hover:bg-gray-100 transition-colors flex items-center justify-center"
+            aria-label="Start chat with this user"
+            title="Start chat"
           >
             <svg
               className="w-6 h-6"
               fill="none"
-              stroke="currentColor"
+              stroke="black"
               viewBox="0 0 24 24"
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M8 12h.01M12h.01M16h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 18l-4-4h8l-4 4z"
               />
             </svg>
           </button>

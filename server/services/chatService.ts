@@ -166,21 +166,45 @@ class ChatService {
   // Get user's conversations
   async getUserConversations(userId: string): Promise<Conversation[]> {
     try {
-      const snapshot = await getFirestore()
-        .collection('conversations')
-        .where('participants', 'array-contains', userId)
-        .orderBy('lastMessageTime', 'desc')
-        .get();
+      // First try with ordering (requires index)
+      try {
+        const snapshot = await getFirestore()
+          .collection('conversations')
+          .where('participants', 'array-contains', userId)
+          .orderBy('lastMessageTime', 'desc')
+          .get();
 
-      const conversations: Conversation[] = [];
-      snapshot.forEach((doc) => {
-        conversations.push({ id: doc.id, ...doc.data() } as Conversation);
-      });
+        const conversations: Conversation[] = [];
+        snapshot.forEach((doc) => {
+          conversations.push({ id: doc.id, ...doc.data() } as Conversation);
+        });
+        return conversations;
+      } catch (indexError: any) {
+        // If index doesn't exist, fall back to unordered query
+        console.warn(
+          'Index not ready, using fallback query:',
+          indexError?.message || 'Unknown error'
+        );
+        const snapshot = await getFirestore()
+          .collection('conversations')
+          .where('participants', 'array-contains', userId)
+          .get();
 
-      return conversations;
+        const conversations: Conversation[] = [];
+        snapshot.forEach((doc) => {
+          conversations.push({ id: doc.id, ...doc.data() } as Conversation);
+        });
+
+        // Sort in memory as fallback
+        return conversations.sort(
+          (a, b) =>
+            (b.lastMessageTime?.toMillis?.() || 0) -
+            (a.lastMessageTime?.toMillis?.() || 0)
+        );
+      }
     } catch (error) {
       console.error('Error fetching conversations:', error);
-      throw new Error('Failed to fetch conversations');
+      return []; // Return empty array instead of throwing
     }
   }
 

@@ -19,7 +19,7 @@ const Chat: React.FC<ChatProps> = ({
   const { user } = useUserStore();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   // Listen to messages in this conversation with real-time updates
   useEffect(() => {
@@ -29,17 +29,12 @@ const Chat: React.FC<ChatProps> = ({
       conversationId,
       (newMessages) => {
         setMessages(newMessages);
-        scrollToBottom();
+        // Auto-scroll disabled - let user control their own scroll position
       }
     );
 
     return () => unsubscribe();
   }, [conversationId]);
-
-  // Scroll to bottom when new messages arrive
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
 
   // Send a new message with optimistic updates
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -55,7 +50,7 @@ const Chat: React.FC<ChatProps> = ({
       senderId: user.uid,
       receiverId: otherUserId,
       content: messageContent,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(), // Use ISO string for consistency
       read: false,
     };
 
@@ -63,8 +58,7 @@ const Chat: React.FC<ChatProps> = ({
     setMessages((prev) => [...prev, optimisticMessage]);
     setNewMessage('');
 
-    // Scroll to bottom to show new message
-    setTimeout(() => scrollToBottom(), 100);
+    // Auto-scroll disabled - user controls their own scroll position
 
     try {
       // Send message to server
@@ -95,8 +89,47 @@ const Chat: React.FC<ChatProps> = ({
   // Format timestamp for display
   const formatTime = (timestamp: any) => {
     if (!timestamp) return '';
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    try {
+      let date: Date;
+
+      // Handle Firestore Timestamp objects with .toDate() method
+      if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+        date = timestamp.toDate();
+      }
+      // Handle Firestore Timestamp objects with _seconds and _nanoseconds
+      else if (timestamp._seconds && typeof timestamp._seconds === 'number') {
+        // Convert seconds to milliseconds and create Date
+        date = new Date(timestamp._seconds * 1000);
+      }
+      // Handle regular Date objects
+      else if (timestamp instanceof Date) {
+        date = timestamp;
+      }
+      // Handle timestamp numbers or strings
+      else {
+        date = new Date(timestamp);
+      }
+
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        console.warn('Invalid timestamp:', timestamp);
+        return '';
+      }
+
+      return date.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch (error) {
+      console.warn(
+        'Error formatting timestamp:',
+        error,
+        'Timestamp value:',
+        timestamp
+      );
+      return '';
+    }
   };
 
   if (!user) {
@@ -106,7 +139,10 @@ const Chat: React.FC<ChatProps> = ({
   return (
     <div className="flex flex-col h-full bg-white">
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto p-4 space-y-4"
+      >
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full text-gray-500">
             <div className="text-center">
@@ -140,34 +176,21 @@ const Chat: React.FC<ChatProps> = ({
                 }`}
               >
                 <div
-                  className={`max-w-xs px-4 py-2 rounded-lg ${
+                  className={`max-w-[75%] md:max-w-md px-4 py-3 rounded-2xl ${
                     isOwnMessage
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 text-gray-900'
+                      ? 'bg-gray-200 text-gray-900 shadow-sm border border-gray-300'
+                      : 'bg-white text-gray-900 shadow-sm border border-gray-200'
                   } ${message.id?.startsWith('temp-') ? 'opacity-70' : ''}`}
                 >
                   <div className="flex items-center space-x-2">
                     <p className="text-sm">{message.content}</p>
-                    {message.id?.startsWith('temp-') && (
-                      <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-current rounded-full animate-pulse"></div>
-                        <div
-                          className="w-2 h-2 bg-current rounded-full animate-pulse"
-                          style={{ animationDelay: '0.2s' }}
-                        ></div>
-                        <div
-                          className="w-2 h-2 bg-current rounded-full animate-pulse"
-                          style={{ animationDelay: '0.4s' }}
-                        ></div>
-                      </div>
-                    )}
                   </div>
-                  <p
-                    className={`text-xs mt-1 ${
-                      isOwnMessage ? 'text-blue-100' : 'text-gray-500'
-                    }`}
-                  >
-                    {formatTime(message.timestamp)}
+                  <p className={`text-xs mt-2 text-gray-500`}>
+                    {formatTime(message.timestamp) || (
+                      <span title={`Raw timestamp: ${message.timestamp}`}>
+                        Just now
+                      </span>
+                    )}
                     {message.id?.startsWith('temp-') && (
                       <span className="ml-2 text-xs">Sending...</span>
                     )}
@@ -177,47 +200,44 @@ const Chat: React.FC<ChatProps> = ({
             );
           })
         )}
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Message Input */}
-      <div className="p-4 border-t border-gray-200 bg-white">
-        <form onSubmit={handleSendMessage} className="flex space-x-2">
+      <div className="p-4 bg-white border-t border-gray-200">
+        <form
+          onSubmit={handleSendMessage}
+          className="flex items-center space-x-3"
+        >
+          {/* Attachment Button */}
+          <button
+            type="button"
+            className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors"
+          >
+            <svg
+              className="w-5 h-5 text-gray-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+          </button>
+
+          {/* Message Input */}
           <input
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Type a message..."
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
-            disabled={false} // Always enabled for better UX
+            placeholder="Send message"
+            className="flex-1 px-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
+            disabled={false}
           />
-          <button
-            type="submit"
-            disabled={!newMessage.trim()}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 transition-colors duration-200"
-          >
-            <PaperAirplaneIcon className="w-4 h-4" />
-            <span className="hidden sm:inline">Send</span>
-          </button>
         </form>
-
-        {/* Typing indicators */}
-        {messages.some((msg) => msg.id?.startsWith('temp-')) && (
-          <div className="mt-2 text-xs text-gray-500 flex items-center space-x-1">
-            <div className="flex space-x-1">
-              <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse"></div>
-              <div
-                className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse"
-                style={{ animationDelay: '0.2s' }}
-              ></div>
-              <div
-                className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse"
-                style={{ animationDelay: '0.4s' }}
-              ></div>
-            </div>
-            <span>Message sending...</span>
-          </div>
-        )}
       </div>
     </div>
   );

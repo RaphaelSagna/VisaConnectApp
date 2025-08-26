@@ -32,7 +32,6 @@ function getConfig() {
     messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
     appId: process.env.REACT_APP_FIREBASE_APP_ID,
   };
-  console.log('Firebase config:', cfg);
   // Minimal guard
   if (!cfg.apiKey || !cfg.projectId || !cfg.appId) {
     return null;

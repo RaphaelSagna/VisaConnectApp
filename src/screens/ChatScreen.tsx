@@ -50,9 +50,9 @@ const ChatScreen: React.FC = () => {
   // If a conversation is selected, show the chat view
   if (selectedConversationId) {
     return (
-      <div className="h-screen flex flex-col bg-white">
+      <div className="flex flex-col bg-white h-full">
         {/* Chat Header */}
-        <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center">
+        <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center relative">
           <button
             onClick={() => {
               setSelectedConversationId('');
@@ -61,7 +61,7 @@ const ChatScreen: React.FC = () => {
                 navigate('/chat');
               }
             }}
-            className="mr-3 p-1"
+            className="absolute left-4 p-1 z-10"
           >
             <svg
               className="w-6 h-6 text-gray-600"
@@ -77,7 +77,9 @@ const ChatScreen: React.FC = () => {
               />
             </svg>
           </button>
-          <div className="flex items-center flex-1">
+
+          {/* Centered User Info */}
+          <div className="flex items-center justify-center flex-1">
             {otherUserPhoto ? (
               <img
                 src={otherUserPhoto}
@@ -98,7 +100,7 @@ const ChatScreen: React.FC = () => {
         </div>
 
         {/* Chat Messages */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden max-w-4xl mx-auto w-full">
           <Chat
             conversationId={selectedConversationId}
             otherUserId={otherUserId}
@@ -112,9 +114,9 @@ const ChatScreen: React.FC = () => {
 
   // Main chat list view
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="flex flex-col bg-gray-50 h-full">
       {/* Chat List */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden max-w-4xl mx-auto w-full">
         <ChatList
           onSelectConversation={handleSelectConversation}
           selectedConversationId={selectedConversationId}

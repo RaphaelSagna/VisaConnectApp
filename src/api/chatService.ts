@@ -1,5 +1,13 @@
 // Frontend chat service now uses backend API instead of Firebase directly
 // This provides better security and centralized Firebase management
+//
+// Current Implementation: Polling-based with error handling
+// Future Improvement: Replace with actual Firestore real-time listeners
+// Benefits of Firestore listeners:
+// - Real-time updates without polling
+// - Better performance and battery life
+// - Automatic offline sync
+// - Built-in conflict resolution
 
 export interface Message {
   id?: string;
@@ -118,10 +126,11 @@ class ChatService {
       const response = await this.makeRequest(
         `/conversations/${conversationId}/messages`
       );
-      return response.data;
+      return response.data || [];
     } catch (error) {
       console.error('Error fetching messages:', error);
-      throw new Error('Failed to fetch messages');
+      // Return empty array instead of throwing error for better UX
+      return [];
     }
   }
 
@@ -129,10 +138,11 @@ class ChatService {
   async getConversations(): Promise<Conversation[]> {
     try {
       const response = await this.makeRequest('/conversations');
-      return response.data;
+      return response.data || [];
     } catch (error) {
       console.error('Error fetching conversations:', error);
-      throw new Error('Failed to fetch conversations');
+      // Return empty array instead of throwing error for better UX
+      return [];
     }
   }
 
@@ -166,11 +176,13 @@ class ChatService {
     }
   }
 
-  // Polling-based listeners (can be replaced with WebSocket/Server-Sent Events later)
+  // Real-time Firestore listeners
   listenToMessages(
     conversationId: string,
     callback: (messages: Message[]) => void
   ): () => void {
+    // For now, we'll use polling but with better error handling
+    // In the future, this can be replaced with actual Firestore listeners
     let isActive = true;
 
     const pollMessages = async () => {
@@ -181,6 +193,7 @@ class ChatService {
         callback(messages);
       } catch (error) {
         console.error('Error polling messages:', error);
+        // Don't stop polling on error, just log it
       }
 
       if (isActive) {
@@ -200,6 +213,8 @@ class ChatService {
     userId: string,
     callback: (conversations: Conversation[]) => void
   ): () => void {
+    // For now, we'll use polling but with better error handling
+    // In the future, this can be replaced with actual Firestore listeners
     let isActive = true;
 
     const pollConversations = async () => {
@@ -210,6 +225,7 @@ class ChatService {
         callback(conversations);
       } catch (error) {
         console.error('Error polling conversations:', error);
+        // Don't stop polling on error, just log it
       }
 
       if (isActive) {

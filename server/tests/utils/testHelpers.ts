@@ -13,7 +13,12 @@ export interface MockAuthToken {
 }
 
 export class TestDataFactory {
-  static createMockUser(uid: string, email?: string, firstName?: string, lastName?: string): MockUser {
+  static createMockUser(
+    uid: string,
+    email?: string,
+    firstName?: string,
+    lastName?: string
+  ): MockUser {
     return {
       uid,
       email: email || `user${uid}@example.com`,
@@ -32,15 +37,16 @@ export class TestDataFactory {
   static createMockConversation(
     id: string,
     participants: string[],
-    lastMessage?: string,
-    lastMessageAt?: Date
+    lastMessage?: Message,
+    lastMessageTime?: Date
   ): Conversation {
     return {
       id,
       participants,
       createdAt: new Date(),
-      lastMessageAt: lastMessageAt || new Date(),
-      lastMessage: lastMessage || null,
+      updatedAt: new Date(),
+      lastMessageTime: lastMessageTime || new Date(),
+      lastMessage: lastMessage || undefined,
     };
   }
 
@@ -54,8 +60,8 @@ export class TestDataFactory {
   ): Message {
     return {
       id,
-      conversationId,
       senderId,
+      receiverId: conversationId, // Use receiverId instead of conversationId
       content,
       timestamp: timestamp || new Date(),
       read: read || false,
@@ -67,7 +73,10 @@ export class TestDataFactory {
     participants: string[],
     messageCount: number = 3
   ): { conversation: Conversation; messages: Message[] } {
-    const conversation = this.createMockConversation(conversationId, participants);
+    const conversation = this.createMockConversation(
+      conversationId,
+      participants
+    );
     const messages: Message[] = [];
 
     for (let i = 0; i < messageCount; i++) {
@@ -84,22 +93,25 @@ export class TestDataFactory {
     // Update conversation with last message
     if (messages.length > 0) {
       const lastMessage = messages[messages.length - 1];
-      conversation.lastMessage = lastMessage.content;
-      conversation.lastMessageAt = lastMessage.timestamp;
+      conversation.lastMessage = lastMessage;
+      conversation.lastMessageTime = lastMessage.timestamp;
     }
 
     return { conversation, messages };
   }
 
-  static generateMockConversations(userId: string, count: number = 5): Conversation[] {
+  static generateMockConversations(
+    userId: string,
+    count: number = 5
+  ): Conversation[] {
     const conversations: Conversation[] = [];
-    
+
     for (let i = 1; i <= count; i++) {
       const otherUserId = `user-${i + 1}`;
       const conversation = this.createMockConversation(
         `conv-${i}`,
         [userId, otherUserId],
-        `Last message in conversation ${i}`,
+        undefined, // No last message for generated conversations
         new Date(Date.now() - i * 60000) // Each conversation is 1 minute apart
       );
       conversations.push(conversation);
@@ -108,10 +120,13 @@ export class TestDataFactory {
     return conversations;
   }
 
-  static generateMockMessages(conversationId: string, count: number = 10): Message[] {
+  static generateMockMessages(
+    conversationId: string,
+    count: number = 10
+  ): Message[] {
     const messages: Message[] = [];
     const participants = ['user1', 'user2'];
-    
+
     for (let i = 0; i < count; i++) {
       const senderId = participants[i % participants.length];
       const message = this.createMockMessage(
@@ -174,7 +189,7 @@ export class TestAssertions {
     expect(conversation).toHaveProperty('createdAt');
     expect(conversation).toHaveProperty('lastMessageAt');
     expect(conversation).toHaveProperty('lastMessage');
-    
+
     expect(Array.isArray(conversation.participants)).toBe(true);
     expect(conversation.participants.length).toBeGreaterThan(0);
     expect(conversation.createdAt).toBeInstanceOf(Date);
@@ -188,7 +203,7 @@ export class TestAssertions {
     expect(message).toHaveProperty('content');
     expect(message).toHaveProperty('timestamp');
     expect(message).toHaveProperty('read');
-    
+
     expect(typeof message.content).toBe('string');
     expect(message.content.length).toBeGreaterThan(0);
     expect(message.timestamp).toBeInstanceOf(Date);
@@ -217,10 +232,30 @@ export class TestAssertions {
 }
 
 export const testUsers = {
-  user1: TestDataFactory.createMockUser('user1', 'user1@example.com', 'John', 'Doe'),
-  user2: TestDataFactory.createMockUser('user2', 'user2@example.com', 'Jane', 'Smith'),
-  user3: TestDataFactory.createMockUser('user3', 'user3@example.com', 'Bob', 'Johnson'),
-  user4: TestDataFactory.createMockUser('user4', 'user4@example.com', 'Alice', 'Brown'),
+  user1: TestDataFactory.createMockUser(
+    'user1',
+    'user1@example.com',
+    'John',
+    'Doe'
+  ),
+  user2: TestDataFactory.createMockUser(
+    'user2',
+    'user2@example.com',
+    'Jane',
+    'Smith'
+  ),
+  user3: TestDataFactory.createMockUser(
+    'user3',
+    'user3@example.com',
+    'Bob',
+    'Johnson'
+  ),
+  user4: TestDataFactory.createMockUser(
+    'user4',
+    'user4@example.com',
+    'Alice',
+    'Brown'
+  ),
 };
 
 export const testAuthTokens = {

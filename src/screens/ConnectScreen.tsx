@@ -189,14 +189,16 @@ const ConnectScreen: React.FC = () => {
                       </p>
                     </div>
 
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => handleConnect(user.id)}
-                      className="px-4 py-2"
-                    >
-                      Connect
-                    </Button>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => handleConnect(user.id)}
+                        className="px-4 py-2"
+                      >
+                        Connect
+                      </Button>
+                    </div>
                   </div>
 
                   {/* User Details */}

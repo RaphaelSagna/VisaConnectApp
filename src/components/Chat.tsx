@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useUserStore } from '../stores/userStore';
 import { chatService, Message } from '../api/chatService';
+import { websocketService } from '../api/websocketService';
 
 interface ChatProps {
   conversationId: string;
@@ -21,22 +22,35 @@ const Chat: React.FC<ChatProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  // Listen to messages in this conversation with real-time updates
+  // Listen to messages in this conversation with real-time updates via WebSocket
   useEffect(() => {
     if (!conversationId) return;
 
     setIsLoading(true);
 
-    const unsubscribe = chatService.listenToMessages(
-      conversationId,
-      (newMessages) => {
-        setMessages(newMessages);
+    // Initial load of messages
+    const loadInitialMessages = async () => {
+      try {
+        const initialMessages = await chatService.getMessages(conversationId);
+        setMessages(initialMessages);
         setIsLoading(false);
-        // Auto-scroll disabled - let user control their own scroll position
+      } catch (error) {
+        console.error('Error loading initial messages:', error);
+        setIsLoading(false);
       }
-    );
+    };
 
-    return () => unsubscribe();
+    loadInitialMessages();
+
+    // Subscribe to real-time updates via WebSocket
+    websocketService.subscribeToConversation(conversationId, (newMessages) => {
+      setMessages(newMessages);
+      setIsLoading(false);
+    });
+
+    return () => {
+      websocketService.unsubscribeFromConversation(conversationId);
+    };
   }, [conversationId]);
 
   // Send a new message with optimistic updates

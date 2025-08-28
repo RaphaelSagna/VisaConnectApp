@@ -1,13 +1,5 @@
-// Frontend chat service now uses backend API instead of Firebase directly
-// This provides better security and centralized Firebase management
-//
-// Current Implementation: Polling-based with error handling
-// Future Improvement: Replace with actual Firestore real-time listeners
-// Benefits of Firestore listeners:
-// - Real-time updates without polling
-// - Better performance and battery life
-// - Automatic offline sync
-// - Built-in conflict resolution
+// Frontend chat service now uses backend API + WebSocket for real-time updates
+// This provides better security, centralized Firebase management, and eliminates client-side Firebase issues
 
 export interface Message {
   id?: string;
@@ -120,7 +112,7 @@ class ChatService {
     }
   }
 
-  // Get messages for a conversation (polling-based for now)
+  // Get messages for a conversation (initial load, not real-time)
   async getMessages(conversationId: string): Promise<Message[]> {
     try {
       const response = await this.makeRequest(
@@ -134,7 +126,7 @@ class ChatService {
     }
   }
 
-  // Get user's conversations (polling-based for now)
+  // Get user's conversations (initial load, not real-time)
   async getConversations(): Promise<Conversation[]> {
     try {
       const response = await this.makeRequest('/conversations');
@@ -176,146 +168,8 @@ class ChatService {
     }
   }
 
-  // Real-time Firestore listeners
-  listenToMessages(
-    conversationId: string,
-    callback: (messages: Message[]) => void
-  ): () => void {
-    // Try Firestore listener; fallback to polling on failure
-    try {
-      // Lazy require to avoid hard dependency if env vars are missing
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const {
-        ensureFirebase,
-        ensureSignedInAnonymously,
-      } = require('./firebase');
-      const bundle = ensureFirebase?.();
-      if (!bundle) throw new Error('Firebase not configured');
-      const { db } = bundle;
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const {
-        collection,
-        query,
-        orderBy,
-        onSnapshot,
-      } = require('firebase/firestore');
-
-      ensureSignedInAnonymously?.().catch(() => undefined);
-
-      const q = query(
-        collection(db, 'conversations', conversationId, 'messages'),
-        orderBy('timestamp', 'asc')
-      );
-
-      const unsub = onSnapshot(
-        q,
-        (snap: any) => {
-          const msgs: Message[] = [];
-          snap.forEach((doc: any) => msgs.push({ id: doc.id, ...doc.data() }));
-          callback(msgs);
-        },
-        (_err: any) => {
-          unsub();
-          return this._startMessagesPolling(conversationId, callback);
-        }
-      );
-
-      return () => unsub();
-    } catch (_e) {
-      return this._startMessagesPolling(conversationId, callback);
-    }
-  }
-
-  private _startMessagesPolling(
-    conversationId: string,
-    callback: (messages: Message[]) => void
-  ): () => void {
-    let isActive = true;
-    const poll = async () => {
-      if (!isActive) return;
-      try {
-        const messages = await this.getMessages(conversationId);
-        callback(messages);
-      } catch (error) {
-        console.error('Error polling messages:', error);
-      }
-      if (isActive) setTimeout(poll, 2000);
-    };
-    poll();
-    return () => {
-      isActive = false;
-    };
-  }
-
-  listenToConversations(
-    userId: string,
-    callback: (conversations: Conversation[]) => void
-  ): () => void {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const {
-        ensureFirebase,
-        ensureSignedInAnonymously,
-      } = require('./firebase');
-      const bundle = ensureFirebase?.();
-      if (!bundle) throw new Error('Firebase not configured');
-      const { db } = bundle;
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const {
-        collection,
-        query,
-        where,
-        orderBy,
-        onSnapshot,
-      } = require('firebase/firestore');
-
-      ensureSignedInAnonymously?.().catch(() => undefined);
-
-      const q = query(
-        collection(db, 'conversations'),
-        where('participants', 'array-contains', userId),
-        orderBy('lastMessageTime', 'desc')
-      );
-
-      const unsub = onSnapshot(
-        q,
-        (snap: any) => {
-          const rows: Conversation[] = [];
-          snap.forEach((doc: any) => rows.push({ id: doc.id, ...doc.data() }));
-          callback(rows);
-        },
-        (_err: any) => {
-          unsub();
-          return this._startConversationsPolling(userId, callback);
-        }
-      );
-
-      return () => unsub();
-    } catch (_e) {
-      return this._startConversationsPolling(userId, callback);
-    }
-  }
-
-  private _startConversationsPolling(
-    _userId: string,
-    callback: (conversations: Conversation[]) => void
-  ): () => void {
-    let isActive = true;
-    const poll = async () => {
-      if (!isActive) return;
-      try {
-        const conversations = await this.getConversations();
-        callback(conversations);
-      } catch (error) {
-        console.error('Error polling conversations:', error);
-      }
-      if (isActive) setTimeout(poll, 4000);
-    };
-    poll();
-    return () => {
-      isActive = false;
-    };
-  }
+  // Note: Real-time listeners are now handled by the WebSocket service
+  // This service only handles HTTP API calls for CRUD operations
 }
 
 export const chatService = new ChatService();

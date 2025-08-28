@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useUserStore } from '../stores/userStore';
 import { chatService, Conversation } from '../api/chatService';
+import { websocketService } from '../api/websocketService';
 import { ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 
 interface ChatListProps {
@@ -21,19 +22,33 @@ const ChatList: React.FC<ChatListProps> = ({
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Listen to user's conversations with real-time updates
+  // Listen to user's conversations with real-time updates via WebSocket
   useEffect(() => {
     if (!user?.uid) return;
 
-    const unsubscribe = chatService.listenToConversations(
-      user.uid,
-      (newConversations) => {
-        setConversations(newConversations);
+    // Initial load of conversations
+    const loadInitialConversations = async () => {
+      try {
+        const initialConversations = await chatService.getConversations();
+        setConversations(initialConversations);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error loading initial conversations:', error);
         setIsLoading(false);
       }
-    );
+    };
 
-    return () => unsubscribe();
+    loadInitialConversations();
+
+    // Subscribe to real-time updates via WebSocket
+    websocketService.subscribeToUserConversations((newConversations) => {
+      setConversations(newConversations);
+      setIsLoading(false);
+    });
+
+    return () => {
+      websocketService.unsubscribeFromUserConversations();
+    };
   }, [user?.uid]);
 
   // Get the other user's ID from a conversation

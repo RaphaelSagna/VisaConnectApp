@@ -265,6 +265,168 @@ class ChatService {
       return 0;
     }
   }
+
+  // Create a stateless Firebase listener for a conversation
+  // Returns an unsubscribe function that the caller should manage
+  createConversationListener(
+    conversationId: string,
+    onUpdate: (data: any) => void
+  ): () => void {
+    try {
+      const db = getFirestore();
+      const unsubscribe = db
+        .collection('conversations')
+        .doc(conversationId)
+        .collection('messages')
+        .orderBy('timestamp', 'asc')
+        .onSnapshot(
+          (snapshot) => {
+            const changes = snapshot.docChanges().map((change) => ({
+              type: change.type,
+              docId: change.doc.id,
+              data: change.doc.data(),
+            }));
+
+            console.log(
+              `Real-time update for conversation ${conversationId}:`,
+              changes
+            );
+
+            // Push update to connected clients via callback
+            onUpdate({
+              type: 'conversation_update',
+              conversationId,
+              changes,
+            });
+          },
+          (error) => {
+            console.error(
+              `Listener error for conversation ${conversationId}:`,
+              error
+            );
+            // Let the caller handle cleanup
+          }
+        );
+
+      console.log(
+        `Created real-time listener for conversation ${conversationId}`
+      );
+      return unsubscribe;
+    } catch (error) {
+      console.error(
+        `Failed to create listener for conversation ${conversationId}:`,
+        error
+      );
+      // Return no-op function on error
+      return () => {};
+    }
+  }
+
+  // Create a stateless Firebase listener for user's conversations
+  // Returns an unsubscribe function that the caller should manage
+  createUserConversationsListener(
+    userId: string,
+    onUpdate: (data: any) => void
+  ): () => void {
+    try {
+      const db = getFirestore();
+      const unsubscribe = db
+        .collection('conversations')
+        .where('participants', 'array-contains', userId)
+        .orderBy('lastMessageTime', 'desc')
+        .onSnapshot(
+          (snapshot) => {
+            const changes = snapshot.docChanges().map((change) => ({
+              type: change.type,
+              docId: change.doc.id,
+              data: change.doc.data(),
+            }));
+
+            console.log(
+              `Real-time update for user ${userId} conversations:`,
+              changes
+            );
+
+            // Push update to connected clients via callback
+            onUpdate({
+              type: 'user_conversations_update',
+              userId,
+              changes,
+            });
+          },
+          (error) => {
+            console.error(
+              `Listener error for user ${userId} conversations:`,
+              error
+            );
+            // Let the caller handle cleanup
+          }
+        );
+
+      console.log(
+        `Created real-time listener for user ${userId} conversations`
+      );
+      return unsubscribe;
+    } catch (error) {
+      console.error(
+        `Failed to create listener for user ${userId} conversations:`,
+        error
+      );
+      // Return no-op function on error
+      return () => {};
+    }
+  }
+
+  // Get conversation messages with real-time updates
+  async getConversationMessagesWithListener(
+    conversationId: string,
+    userId: string,
+    onUpdate: (data: any) => void
+  ): Promise<{ messages: Message[]; unsubscribe: () => void }> {
+    try {
+      // Get initial messages
+      const messages = await this.getConversationMessages(
+        conversationId,
+        userId
+      );
+
+      // Create real-time listener
+      const unsubscribe = this.createConversationListener(
+        conversationId,
+        onUpdate
+      );
+
+      return { messages, unsubscribe };
+    } catch (error) {
+      console.error('Error setting up conversation with listener:', error);
+      return { messages: [], unsubscribe: () => {} };
+    }
+  }
+
+  // Get user conversations with real-time updates
+  async getUserConversationsWithListener(
+    userId: string,
+    onUpdate: (data: any) => void
+  ): Promise<{ conversations: Conversation[]; unsubscribe: () => void }> {
+    try {
+      // Get initial conversations
+      const conversations = await this.getUserConversations(userId);
+
+      // Create real-time listener
+      const unsubscribe = this.createUserConversationsListener(
+        userId,
+        onUpdate
+      );
+
+      return { conversations, unsubscribe };
+    } catch (error) {
+      console.error(
+        'Error setting up user conversations with listener:',
+        error
+      );
+      return { conversations: [], unsubscribe: () => {} };
+    }
+  }
 }
 
 export const chatService = new ChatService();

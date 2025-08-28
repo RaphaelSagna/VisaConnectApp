@@ -66,13 +66,7 @@ const Chat: React.FC<ChatProps> = ({
     }
   }, [messages.length]);
 
-  // Scroll to bottom of messages container
-  const scrollToBottom = () => {
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop =
-        messagesContainerRef.current.scrollHeight;
-    }
-  };
+
 
   // Force scroll to bottom with multiple strategies
   const smoothScrollToBottom = () => {

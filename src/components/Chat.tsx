@@ -34,6 +34,9 @@ const Chat: React.FC<ChatProps> = ({
         const initialMessages = await chatService.getMessages(conversationId);
         setMessages(initialMessages);
         setIsLoading(false);
+
+        // Auto-scroll to bottom after initial messages load
+        setTimeout(smoothScrollToBottom, 100);
       } catch (error) {
         console.error('Error loading initial messages:', error);
         setIsLoading(false);
@@ -46,12 +49,65 @@ const Chat: React.FC<ChatProps> = ({
     websocketService.subscribeToConversation(conversationId, (newMessages) => {
       setMessages(newMessages);
       setIsLoading(false);
+
+      // Auto-scroll to bottom when new messages arrive
+      setTimeout(smoothScrollToBottom, 100);
     });
 
     return () => {
       websocketService.unsubscribeFromConversation(conversationId);
     };
   }, [conversationId]);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      setTimeout(smoothScrollToBottom, 100);
+    }
+  }, [messages.length]);
+
+  // Scroll to bottom of messages container
+  const scrollToBottom = () => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop =
+        messagesContainerRef.current.scrollHeight;
+    }
+  };
+
+  // Force scroll to bottom with multiple strategies
+  const smoothScrollToBottom = () => {
+    // Strategy 1: Scroll the entire page to bottom
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth',
+    });
+
+    // Strategy 2: Also try to scroll the messages container
+    if (messagesContainerRef.current) {
+      const container = messagesContainerRef.current;
+      container.scrollTop = container.scrollHeight;
+
+      // Strategy 3: Use scrollIntoView on the last message
+      const messages = container.querySelectorAll('[data-message]');
+      if (messages.length > 0) {
+        const lastMessage = messages[messages.length - 1];
+        lastMessage.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }
+
+      // Strategy 4: Force scroll after a delay
+      setTimeout(() => {
+        container.scrollTop = container.scrollHeight;
+      }, 100);
+    }
+
+    // Strategy 5: Final page scroll to ensure we're at bottom
+    setTimeout(() => {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth',
+      });
+    }, 200);
+  };
 
   // Send a new message with optimistic updates
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -75,7 +131,8 @@ const Chat: React.FC<ChatProps> = ({
     setMessages((prev) => [...prev, optimisticMessage]);
     setNewMessage('');
 
-    // Auto-scroll disabled - user controls their own scroll position
+    // Auto-scroll to bottom when new message is added
+    setTimeout(smoothScrollToBottom, 100);
 
     try {
       // Send message to server
@@ -158,7 +215,12 @@ const Chat: React.FC<ChatProps> = ({
       {/* Messages Area */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-4 space-y-4"
+        className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0"
+        style={{
+          height: 'calc(100vh - 200px)',
+          maxHeight: 'calc(100vh - 200px)',
+          overflowY: 'auto',
+        }}
       >
         {isLoading ? (
           <div className="flex items-center justify-center h-full text-gray-500">
@@ -195,6 +257,7 @@ const Chat: React.FC<ChatProps> = ({
             return (
               <div
                 key={message.id}
+                data-message="true"
                 className={`flex ${
                   isOwnMessage ? 'justify-end' : 'justify-start'
                 }`}
